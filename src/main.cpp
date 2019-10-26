@@ -9,5 +9,19 @@ void loop(){
 
   if (digitalRead(AP_REQUEST) == LOW)
     openAP();
-  //Serial.println("Loop Running :");
+  
+  if (!mqttClient.connected()) {
+    mqttConnect();
+  }
+  mqttClient.loop();
+
+  long now = millis();
+  if (now - lastMsg > 2000) {
+    lastMsg = now;
+    ++value;
+    snprintf (msg, 50, "hello world #%ld", value);
+    Serial.print("Publish message: ");
+    Serial.println(msg);
+    mqttClient.publish("outTopic", msg);
+  }
 }

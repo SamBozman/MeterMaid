@@ -17,14 +17,6 @@
 #include <WebServer.h>
 //#endif
 #include <WiFiManager.h> //https://github.com/tzapu/WiFiManager/tree/development
-
+#include <PubSubClient.h>
 #include <ArduinoJson.h> //https://github.com/bblanchon/ArduinoJson
 
-void dump(const JsonVariant &variant, int nesting);
-void indent(int nesting);
-void dump(bool value, int nesting);
-void dump(long value, int nesting);
-void dump(double value, int nesting);
-void dump(const char *str, int nesting);
-void dump(const JsonObject &obj, int nesting);
-void dump(const JsonArray &arr, int nesting);

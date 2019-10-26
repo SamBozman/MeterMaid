@@ -1,25 +1,59 @@
 #pragma once
 #include "declarations.h"
 
-//*********************************************************
-//int charToInt(char c) {
-//  //Need to add a test for numeric value in char variable here
-//  sscanf(test, "%d", &x); // Using sscanf to convert char to integer
-//  Serial.print("int x = ");
-//  Serial.println(x);
-//}
-
-/* return true on success */
-int charToInt(const char *numArray, int *value)
+void dataInCallback(char *topic, byte *payload, unsigned int length)
 {
-    int n = 0;
-    return sscanf(numArray, "%d%n", value, &n) > 0 /* integer was converted */
-       &&  numArray[n] == '\0'; /* all input got consumed */
+  Serial.print("Message arrived [");
+  Serial.print(topic);
+  Serial.print("] ");
+  for (int i = 0; i < length; i++)
+  {
+    Serial.print((char)payload[i]);
+  }
+  Serial.println();
 }
 
+//*********************************************************
+void mqttConnect()
+{
+  // Loop until we're reconnected
+  while (!mqttClient.connected())
+  {
+    Serial.print("Attempting MQTT connection...");
+    //    // Create a random client ID
+    //    String clientId = "ESP8266Client-";
+    //    clientId += String(random(0xffff), HEX);
+    //    // Attempt to connect
+    //    if (client.connect(clientId.c_str())) {
+    if (mqttClient.connect(ClientID))
+    {
+      Serial.println("connected");
+      // Once connected, publish an announcement...
+      mqttClient.publish("outTopic", jsonPayload.c_str());
+      // ... and resubscribe
+      mqttClient.subscribe("inTopic");
+    }
+    else
+    {
+      Serial.print("failed, rc=");
+      Serial.print(mqttClient.state());
+      Serial.println(" try again in 5 seconds");
+      // Wait 5 seconds before retrying
+      delay(5000);
+    }
+  }
+}
+//*********************************************************
+int charToInt(const char *numArray, int *value)
+{
+  int n = 0;
+  return sscanf(numArray, "%d%n", value, &n) > 0 /* integer was converted */
+         && numArray[n] == '\0';                 /* all input got consumed */
+}
 
 //*********************************************************
-void saveConfig() {
+void saveConfig()
+{
   Serial.println("saving config");
   DynamicJsonBuffer jsonBuffer;
   JsonObject &json = jsonBuffer.createObject();
@@ -29,11 +63,13 @@ void saveConfig() {
   json["PMI_Extend"] = PMI_Extend;
   json["WiFi_Retry"] = WiFi_Retry;
 
-  if (SPIFFS.begin()) {
+  if (SPIFFS.begin())
+  {
     Serial.println("mounted file system");
 
     File configFile = SPIFFS.open("/config.json", "w");
-    if (configFile) {
+    if (configFile)
+    {
       Serial.println("writing config file");
       json.prettyPrintTo(Serial);
       json.printTo(configFile);
@@ -41,7 +77,9 @@ void saveConfig() {
       SPIFFS.end();
       ESP.restart();
     }
-  } else {
+  }
+  else
+  {
     Serial.println("failed to mount FS");
   }
 
@@ -50,10 +88,22 @@ void saveConfig() {
 }
 
 //*********************************************************
-void saveConfigCallback() {
+void saveConfigCallback()
+{
   Serial.println("Should save config");
   shouldSaveConfig = true;
 }
+//*********************************************************
+void addToHM()
+{
+  int a = totTime / 3600;
+  totTime = totTime % 3600;
+  HM = atoi(HourMeter);
+  HM += a;
+  itoa(HM, HourMeter, 10);
+  saveConfig();
+}
+
 
 //*********************************************************
 void goToSleep()
@@ -62,17 +112,21 @@ void goToSleep()
   runTime += (stopTime - startTime) / 1000; // last run time in seconds
   totTime += runTime;                       // add to accumilator
 
+  if (totTime >= 3600)
+    addToHM();
+
   Serial.print("Total time = ");
   Serial.print(totTime);
   Serial.println(" seconds");
+
   Serial.println("Going to sleep now");
   pinMode(RUN_SENSOR, INPUT_PULLUP);
   esp_deep_sleep_start();
 }
 
-
 //*********************************************************
-void openAP() {
+void openAP()
+{
   // wifiManager.setTimeout(120); //sets timeout until configuration portal gets turned off
 
   //Triggered when 'Save' button is pressed on AP WebServer
@@ -98,7 +152,8 @@ void openAP() {
   //defaults to 8%
   //wifiManager.setMinimumSignalQuality();
 
-  if (!wifiManager.startConfigPortal("OnDemandAP")) {
+  if (!wifiManager.startConfigPortal("OnDemandAP"))
+  {
     Serial.println("failed to connect and hit timeout");
     delay(1000);
     //reset and try again, or maybe put it to deep sleep
@@ -115,9 +170,8 @@ void openAP() {
   strcpy(WiFi_Retry, custom_WiFi_Retry.getValue());
 
   //save the custom parameters to FS
-  if (shouldSaveConfig) {
+  if (shouldSaveConfig)
+  {
     saveConfig();
-
   }
-
 }

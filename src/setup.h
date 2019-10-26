@@ -45,9 +45,10 @@ void setup() //Runs once when first starting program (reset)
         DynamicJsonBuffer jsonBuffer;
         JsonObject &json = jsonBuffer.parseObject(buf.get());
         json.printTo(Serial);
+        json.printTo(jsonPayload);
         if (json.success())
         {
-          Serial.println("\nparsed json");
+          Serial.println("\nparsed json"); 
 
           //char * strcpy ( char * destination, const char * source );
 
@@ -78,4 +79,11 @@ void setup() //Runs once when first starting program (reset)
   }
   SPIFFS.end();
   //end read
+  mqttClient.setServer(mqtt_server, 1883);
+  mqttClient.setCallback(dataInCallback);
+  chipid = ESP.getEfuseMac(); //The chip ID is essentially its MAC address(length: 6 bytes).
+  chip = (uint16_t)(chipid >> 32);
+  snprintf(ClientID, 23, "ESP-%04X%08X", chip, (uint32_t)chipid);
+  Serial.print("The chip ID is ");
+  Serial.println(ClientID);
 }
