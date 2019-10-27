@@ -1,7 +1,7 @@
 #include "setup.h"
 
-
-void loop(){
+void loop()
+{
   runSensorState = digitalRead(RUN_SENSOR); // read the run sensor state (High is OFF and LOW is on)
 
   if (runSensorState == HIGH)
@@ -9,19 +9,25 @@ void loop(){
 
   if (digitalRead(AP_REQUEST) == LOW)
     openAP();
-  
-  if (!mqttClient.connected()) {
+
+  if (!mqttClient.connected())
+  {
     mqttConnect();
   }
-  mqttClient.loop();
+  mqttClient.loop(); //NEEDED BY PubSubClient
 
+  //############  TEMPORARY FOR TESTING ###########################
   long now = millis();
-  if (now - lastMsg > 2000) {
+  if (now - lastMsg > 20000)
+  { //Publish every 20 seconds
     lastMsg = now;
     ++value;
-    snprintf (msg, 50, "hello world #%ld", value);
-    Serial.print("Publish message: ");
-    Serial.println(msg);
-    mqttClient.publish("outTopic", msg);
+
+    Serial.print("ESP32 - to node ");
+    Serial.println(ClientID); //Prints out unique ChipID (MAC address)
+    mqttClient.publish("outTopic", ClientID);
+    Serial.println();
+   
   }
+  //############  end  of TEMPORARY FOR TESTING ###########################
 }

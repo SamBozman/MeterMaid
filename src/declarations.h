@@ -4,23 +4,26 @@
 //define your default values here, if there are different values in config.json,
 //they are overwritten by these values.
 
-char HourMeter[8];
-int HM;
+char HourMeter[8]="0";
+int HM;//Used to convert char HourMeter into an int
+char PMI_Interval[6]="0";
+char PMI_Extend[4]="0";
+char WiFi_Retry[4]="0";
 
-char PMI_Interval[6];
-char PMI_Extend[4];
-char WiFi_Retry[4];
 const char* mqtt_server = "192.168.1.91";
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 uint64_t chipid;
+
 char ClientID[23];
+
 uint16_t chip;
 long lastMsg = 0;
-char msg[50];
+char msg[50]; //String containing out-going Publish message
 long value = 0;
-String jsonPayload; //hold serialization of json object for MQTT::Publish
+
+
 
 char test[6] = "1234";
 int x;
@@ -43,6 +46,7 @@ unsigned long runTime = 0;
 
 RTC_DATA_ATTR int bootCount = 0;
 RTC_DATA_ATTR unsigned long totTime = 0;
+
 boolean runSensorState = false; //Unit not running
 
 void mqttConnect();
@@ -52,3 +56,4 @@ void goToSleep(); //Sub declaration required by ccp
 void saveConfigCallback();
 void openAP();
 void addToHM();
+void readConfig();

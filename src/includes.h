@@ -18,5 +18,5 @@
 //#endif
 #include <WiFiManager.h> //https://github.com/tzapu/WiFiManager/tree/development
 #include <PubSubClient.h>
-#include <ArduinoJson.h> //https://github.com/bblanchon/ArduinoJson
+#include <ArduinoJson.h> //https://github.com/bblanchon/ArduinoJsonn
 

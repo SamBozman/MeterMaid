@@ -1,8 +1,9 @@
 #pragma once
 #include "declarations.h"
 
-void dataInCallback(char *topic, byte *payload, unsigned int length)
+void dataInCallback(char *topic, byte* payload, unsigned int length)
 {
+  
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
@@ -10,6 +11,7 @@ void dataInCallback(char *topic, byte *payload, unsigned int length)
   {
     Serial.print((char)payload[i]);
   }
+
   Serial.println();
 }
 
@@ -28,10 +30,14 @@ void mqttConnect()
     if (mqttClient.connect(ClientID))
     {
       Serial.println("connected");
-      // Once connected, publish an announcement...
-      mqttClient.publish("outTopic", jsonPayload.c_str());
-      // ... and resubscribe
+
+      // Once connected, publish an announcement...(REMOVE FROM FINAL)
+      mqttClient.publish("outTopic", "hello world from mqttConnect function");
+      
+      // PLACE SUNSCRIBED TOPICS HERE
       mqttClient.subscribe("inTopic");
+      mqttClient.subscribe(ClientID);
+     
     }
     else
     {
@@ -49,6 +55,63 @@ int charToInt(const char *numArray, int *value)
   int n = 0;
   return sscanf(numArray, "%d%n", value, &n) > 0 /* integer was converted */
          && numArray[n] == '\0';                 /* all input got consumed */
+}
+
+//*********************************************************
+void readConfig(){
+  if (SPIFFS.begin(true))
+  {
+    Serial.println("mounted file system");
+    if (SPIFFS.exists("/config.json"))
+    {
+      //file exists, reading and loading
+      Serial.println("reading config file");
+      File configFile = SPIFFS.open("/config.json", "r");
+
+      if (configFile)
+      {
+        Serial.println("opened config file");
+        size_t size = configFile.size();
+        // Allocate a buffer to store contents of the file.
+        std::unique_ptr<char[]> buf(new char[size]);
+
+        configFile.readBytes(buf.get(), size);
+        DynamicJsonBuffer jsonBuffer;
+        JsonObject &json = jsonBuffer.parseObject(buf.get());
+        json.printTo(Serial);
+        if (json.success())
+        {
+          Serial.println("\nparsed json");
+
+          //char * strcpy ( char * destination, const char * source );
+
+          strcpy(HourMeter, json["HourMeter"]);
+          strcpy(PMI_Interval, json["PMI_Interval"]);
+          strcpy(PMI_Extend, json["PMI_Extend"]);
+          strcpy(WiFi_Retry, json["WiFi_Retry"]);         
+               }
+        else
+        {
+          Serial.println("failed to load json config");
+        }
+      }
+      else
+      {
+        Serial.println("failed to open /config.json file!");
+      }
+    }
+    else
+    {
+      Serial.println("/config.json does not exist!");
+    }
+  }
+  else
+  {
+    Serial.println("failed to mount FS");
+  }
+  
+  SPIFFS.end();
+  //end read
 }
 
 //*********************************************************
@@ -75,7 +138,7 @@ void saveConfig()
       json.printTo(configFile);
       configFile.close();
       SPIFFS.end();
-      ESP.restart();
+      //ESP.restart();
     }
   }
   else
