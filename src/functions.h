@@ -1,9 +1,31 @@
 #pragma once
 #include "declarations.h"
 
-void dataInCallback(char *topic, byte* payload, unsigned int length)
+// char* conCat(char* char1, char* char2){
+//     char filename[128];
+//     char* name = "hello";
+//     char* extension = ".txt";
+
+//     if (sizeof(filename) < strlen(name) + 1 ) { /* +1 is for null character */
+//         fprintf(stderr, "Name '%s' is too long\n", name);
+//         return EXIT_FAILURE;
+//     }
+//     strncpy(filename, name, sizeof(filename));
+
+//     if (sizeof(filename) < (strlen(filename) + strlen(extension) + 1) ) {
+//         fprintf(stderr, "Final size of filename is too long!\n");
+//         return EXIT_FAILURE;
+//     }
+//     strncat(filename, extension, (sizeof(filename) - strlen(filename)) );
+//     printf("Filename is %s\n", filename);
+
+//     return EXIT_SUCCESS;
+// }
+//*********************************************************
+
+void dataInCallback(char *topic, byte *payload, unsigned int length)
 {
-  
+
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
@@ -33,11 +55,10 @@ void mqttConnect()
 
       // Once connected, publish an announcement...(REMOVE FROM FINAL)
       mqttClient.publish("outTopic", "hello world from mqttConnect function");
-      
+
       // PLACE SUNSCRIBED TOPICS HERE
       mqttClient.subscribe("inTopic");
       mqttClient.subscribe(ClientID);
-     
     }
     else
     {
@@ -58,7 +79,8 @@ int charToInt(const char *numArray, int *value)
 }
 
 //*********************************************************
-void readConfig(){
+void readConfig()
+{
   if (SPIFFS.begin(true))
   {
     Serial.println("mounted file system");
@@ -88,8 +110,8 @@ void readConfig(){
           strcpy(HourMeter, json["HourMeter"]);
           strcpy(PMI_Interval, json["PMI_Interval"]);
           strcpy(PMI_Extend, json["PMI_Extend"]);
-          strcpy(WiFi_Retry, json["WiFi_Retry"]);         
-               }
+          strcpy(WiFi_Retry, json["WiFi_Retry"]);
+        }
         else
         {
           Serial.println("failed to load json config");
@@ -109,7 +131,7 @@ void readConfig(){
   {
     Serial.println("failed to mount FS");
   }
-  
+
   SPIFFS.end();
   //end read
 }
@@ -166,7 +188,6 @@ void addToHM()
   itoa(HM, HourMeter, 10);
   saveConfig();
 }
-
 
 //*********************************************************
 void goToSleep()
