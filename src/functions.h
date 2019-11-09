@@ -2,7 +2,19 @@
 #include "declarations.h"
 
 //*********************************************************
+int conCat() //Example of working concatenator
+{
+  //Needs work to catch errors
+  char str[80];
+  strcpy(str, PMI_Extend);
+  strcat(str, WiFi_Retry);
+  strcat(str, " is ");
+  strcat(str, "concatenated.");
+  puts(str);
+  return 0;
+}
 
+//*********************************************************
 void dataInCallback(char *topic, byte *payload, unsigned int length)
 {
 
