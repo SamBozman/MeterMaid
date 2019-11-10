@@ -36,18 +36,10 @@ void mqttConnect()
   while (!mqttClient.connected())
   {
     Serial.print("Attempting MQTT connection...");
-    //    // Create a random client ID
-    //    String clientId = "ESP8266Client-";
-    //    clientId += String(random(0xffff), HEX);
-    //    // Attempt to connect
-    //    if (client.connect(clientId.c_str())) {
     if (mqttClient.connect(ClientID))
     {
       Serial.println("connected");
-
-      // Once connected, publish an announcement...(REMOVE FROM FINAL)
       mqttClient.publish("outTopic", "hello world from mqttConnect function");
-
       // PLACE SUNSCRIBED TOPICS HERE
       mqttClient.subscribe("inTopic");
       mqttClient.subscribe(ClientID);

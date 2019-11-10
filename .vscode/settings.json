@@ -1,0 +1,8 @@
+{
+  "files.exclude": {
+    "src/declarations.h.gch": true,
+    "src/setup.h.gch": true,
+    "src/includes.h.gch": true,
+    "src/functions.h.gch": true
+  }
+}

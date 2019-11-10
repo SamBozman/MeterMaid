@@ -1,16 +1,35 @@
 #pragma once
-#include "includes.h"
+
+#include <FS.h> //this needs to be first, or it all crashes and burns...
+#include "SPIFFS.h"
+#include <Arduino.h>
+// #if defined(ESP8266)
+// #include <ESP8266WiFi.h> //https://github.com/esp8266/Arduino
+// #else
+#include <WiFi.h> //https://github.com/esp8266/Arduino
+//#endif
+
+//needed for library
+#include <DNSServer.h>
+// #if defined(ESP8266)
+// #include <ESP8266WebServer.h>
+// #else
+#include <WebServer.h>
+//#endif
+#include <WiFiManager.h> //https://github.com/tzapu/WiFiManager/tree/development
+#include <PubSubClient.h>
+#include <ArduinoJson.h> //https://github.com/bblanchon/ArduinoJsonn
 
 //define your default values here, if there are different values in config.json,
 //they are overwritten by these values.
 
-char HourMeter[8]="0";
-int HM;//Used to convert char HourMeter into an int
-char PMI_Interval[6]="0";
-char PMI_Extend[4]="0";
-char WiFi_Retry[4]="0";
+char HourMeter[8] = "0";
+int HM; //Used to convert char HourMeter into an int
+char PMI_Interval[6] = "0";
+char PMI_Extend[4] = "0";
+char WiFi_Retry[4] = "0";
 
-const char* mqtt_server = "192.168.1.91";
+const char *mqtt_server = "192.168.1.91";
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
@@ -23,13 +42,10 @@ long lastMsg = 0;
 char msg[50]; //String containing out-going Publish message
 long value = 0;
 
-
-
 char test[6] = "1234";
 int x;
 
 WiFiManager wifiManager;
-
 
 //flag for saving data
 bool shouldSaveConfig = false;
@@ -50,7 +66,7 @@ RTC_DATA_ATTR unsigned long totTime = 0;
 boolean runSensorState = false; //Unit not running
 
 void mqttConnect();
-void dataInCallback(char* topic, byte* payload, unsigned int length);
+void dataInCallback(char *topic, byte *payload, unsigned int length);
 void saveConfig();
 void goToSleep(); //Sub declaration required by ccp
 void saveConfigCallback();
