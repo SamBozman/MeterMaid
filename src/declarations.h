@@ -56,3 +56,4 @@ void saveConfigCallback();
 void openAP();
 void addToHM();
 void readConfig();
+void createChipID();
