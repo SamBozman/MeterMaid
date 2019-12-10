@@ -191,7 +191,6 @@ void openAP()
   //sets timeout until configuration portal gets turned off
   wifiManager.setTimeout(120);
   //Triggered when 'Save' button is pressed on AP WebServer
-  wifiManager.setSaveConfigCallback(saveConfigCallback);
 
   //set static ip
   wifiManager.setSTAStaticIPConfig(IPAddress(10, 0, 1, 99), IPAddress(10, 0, 1, 1), IPAddress(255, 255, 255, 0));

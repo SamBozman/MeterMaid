@@ -50,7 +50,6 @@ void mqttConnect();
 void dataInCallback(char *topic, byte *payload, unsigned int length);
 void saveConfig();
 void goToSleep(); //Sub declaration required by ccp
-void saveConfigCallback();
 void openAP();
 void addToHM();
 void readConfig();
