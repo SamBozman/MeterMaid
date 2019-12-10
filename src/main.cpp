@@ -14,6 +14,7 @@ void loop()
   {
     mqttConnect();
   }
+  delay(100);
   mqttClient.loop(); //NEEDED BY PubSubClient
 
   //############  TEMPORARY FOR TESTING ###########################
@@ -27,7 +28,6 @@ void loop()
     Serial.println(ClientID); //Prints out unique ChipID (MAC address)
     mqttClient.publish("outTopic", ClientID);
     Serial.println();
-   
-  }
+    }
   //############  end  of TEMPORARY FOR TESTING ###########################
 }

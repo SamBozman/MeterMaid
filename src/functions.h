@@ -46,8 +46,10 @@ void mqttConnect()
     }
     else
     {
-      Serial.print("failed, rc=");
-      Serial.print(mqttClient.state());
+      Serial.print("RC error = :");
+      Serial.println("failed, rc=");
+      Serial.print("State = :");
+      Serial.println(mqttClient.state());
       Serial.println(" try again in 5 seconds");
       // Wait 5 seconds before retrying
       delay(5000);
@@ -195,26 +197,15 @@ void goToSleep()
 //*********************************************************
 void openAP()
 {
-  // wifiManager.setTimeout(120); //sets timeout until configuration portal gets turned off
-
+  //sets timeout until configuration portal gets turned off
+  wifiManager.setTimeout(120);
   //Triggered when 'Save' button is pressed on AP WebServer
   wifiManager.setSaveConfigCallback(saveConfigCallback);
-
-  //id/name, placeholder/prompt, default, length
-  WiFiManagerParameter custom_HourMeter("HM", "HourMeter", HourMeter, 8);
-  WiFiManagerParameter custom_PMI_Interval("PI", "PMI_Interval", PMI_Interval, 6);
-  WiFiManagerParameter custom_PMI_Extend("PE", "PMI_Extend", PMI_Extend, 4);
-  WiFiManagerParameter custom_WiFi_Retry("WR", "WiFi_Retry", WiFi_Retry, 4);
-
-  wifiManager.addParameter(&custom_HourMeter);
-  wifiManager.addParameter(&custom_PMI_Interval);
-  wifiManager.addParameter(&custom_PMI_Extend);
-  wifiManager.addParameter(&custom_WiFi_Retry);
 
   //set static ip
   wifiManager.setSTAStaticIPConfig(IPAddress(10, 0, 1, 99), IPAddress(10, 0, 1, 1), IPAddress(255, 255, 255, 0));
 
-  //reset settings - for testing
+  //reset settings - uncomment below for testing
   //wifiManager.resetSettings();
 
   //defaults to 8%
@@ -230,16 +221,16 @@ void openAP()
   }
   //if you get here you have connected to the WiFi
   Serial.println("connected...yeey :)");
-
-  //Retrive changed values from Web Server
-  strcpy(HourMeter, custom_HourMeter.getValue());
-  strcpy(PMI_Interval, custom_PMI_Interval.getValue());
-  strcpy(PMI_Extend, custom_PMI_Extend.getValue());
-  strcpy(WiFi_Retry, custom_WiFi_Retry.getValue());
-
-  //save the custom parameters to FS
-  if (shouldSaveConfig)
-  {
-    saveConfig();
-  }
+  ESP.restart();
+}
+//*********************************************************
+void createChipID()
+{
+  uint16_t chip;
+  uint64_t chipid;
+  chipid = ESP.getEfuseMac(); //The chip ID is essentially its MAC address(length: 6 bytes).
+  chip = (uint16_t)(chipid >> 32);
+  snprintf(ClientID, 23, "ESP-%04X%08X", chip, (uint32_t)chipid);
+  Serial.print("The chip ID is ");
+  Serial.println(ClientID);
 }
