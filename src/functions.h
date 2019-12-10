@@ -153,17 +153,8 @@ void saveConfig()
   {
     Serial.println("failed to mount FS");
   }
-
-  shouldSaveConfig = false;
-  //end write
 }
 
-//*********************************************************
-void saveConfigCallback()
-{
-  Serial.println("Should save config");
-  shouldSaveConfig = true;
-}
 //*********************************************************
 void addToHM()
 {

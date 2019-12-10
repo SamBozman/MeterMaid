@@ -30,8 +30,6 @@ long lastMsg = 0;
 char msg[50]; //String containing out-going Publish message
 long value = 0;
 
-//flag for saving data
-bool shouldSaveConfig = false;
 
 // select which pin will trigger the configuration portal when set to LOW
 // ESP-01 users please note: the only pins available (0 and 2), are shared
