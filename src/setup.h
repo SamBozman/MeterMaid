@@ -15,11 +15,12 @@ void setup() //Runs once when first starting program (reset)
   wifiManager.autoConnect("AutoConnectAP");
   Serial.println("SUCCESS - Auto Connected during setup!)");
   const char *mqtt_server = "192.168.1.11"; //This address has been set as static
-
+esp_sleep_enable_ext0_wakeup(GPIO_NUM_13, 0); //WAKE UP CHIP ON LOW
+  
+  createChipID();//Creates a unique chip ID used for communication
   mqttClient.setServer(mqtt_server, 1883); //Ip address and port #
   mqttClient.setCallback(dataInCallback);
-  esp_sleep_enable_ext0_wakeup(GPIO_NUM_13, 0); //WAKE UP CHIP ON LOW
-  createChipID();                               //Creates a unique chip ID used for communication
+  mqttConnect();//Connect to MQTT server
 
   //Increment boot number and print it every reboot
   Serial.println("Boot number: " + String(bootCount));
@@ -29,7 +30,14 @@ void setup() //Runs once when first starting program (reset)
   startTime = millis();
   Serial.println("Unit running, Starting Timer. ");
 
-  //read configuration from FS json
+  UnitID[0] = 0; //Set UnitID to an empty string then read configuration from FS json
   Serial.println("Attempt to read json/config file...");
   readConfig();
+
+ //Now see if UnitID is still empty. If it is, saveConfig and send message
+if(strlen(UnitID) == 0) {
+    saveConfig();
+    mqttClient.publish("noConfig", ClientID);
+  }
+
 }

@@ -2,17 +2,17 @@
 #include "declarations.h"
 
 //*********************************************************
-int conCat() //Example of working concatenator
-{
-  //Needs work to catch errors
-  char str[80];
-  strcpy(str, PMI_Extend);
-  strcat(str, WiFi_Retry);
-  strcat(str, " is ");
-  strcat(str, "concatenated.");
-  puts(str);
-  return 0;
-}
+// int conCat() //Example of working concatenator
+// {
+//   //Needs work to catch errors
+//   char str[80];
+//   strcpy(str, PMI_Extend);
+//   strcat(str, PMI_Hrs);
+//   strcat(str, " is ");
+//   strcat(str, "concatenated.");
+//   puts(str);
+//   return 0;
+// }
 
 //*********************************************************
 void dataInCallback(char *topic, byte *payload, unsigned int length)
@@ -39,7 +39,6 @@ void mqttConnect()
     if (mqttClient.connect(ClientID))
     {
       Serial.println("connected");
-      mqttClient.publish("outTopic", "hello world from mqttConnect function");
       // PLACE SUNSCRIBED TOPICS HERE
       mqttClient.subscribe("inTopic");
       mqttClient.subscribe(ClientID);
@@ -69,13 +68,12 @@ void readConfig()
 {
   if (SPIFFS.begin(true))
   {
-    Serial.println("mounted file system");
+    Serial.println("Opened SPIFFS file system");
     if (SPIFFS.exists("/config.json"))
     {
       //file exists, reading and loading
       Serial.println("reading config file");
       File configFile = SPIFFS.open("/config.json", "r");
-
       if (configFile)
       {
         Serial.println("opened config file");
@@ -90,37 +88,23 @@ void readConfig()
         if (json.success())
         {
           Serial.println("\nparsed json");
-
-          //char * strcpy ( char * destination, const char * source );
-
-          strcpy(HourMeter, json["HourMeter"]);
-          strcpy(PMI_Interval, json["PMI_Interval"]);
+          strcpy(UnitID, json["UnitID"]);
+          strcpy(HourMeter, json["HourMeter"]); 
+          strcpy(PMI_Months, json["PMI_Months"]);        
+          strcpy(PMI_Hrs, json["PMI_Hrs"]);
           strcpy(PMI_Extend, json["PMI_Extend"]);
-          strcpy(WiFi_Retry, json["WiFi_Retry"]);
-        }
-        else
-        {
-          Serial.println("failed to load json config");
+         
         }
       }
-      else
-      {
-        Serial.println("failed to open /config.json file!");
-      }
-    }
-    else
-    {
-      Serial.println("/config.json does not exist!");
     }
   }
   else
   {
     Serial.println("failed to mount FS");
   }
-
   SPIFFS.end();
-  //end read
 }
+
 
 //*********************************************************
 void saveConfig()
@@ -129,11 +113,12 @@ void saveConfig()
   DynamicJsonBuffer jsonBuffer;
   JsonObject &json = jsonBuffer.createObject();
 
+  json["UnitID"] = UnitID;
   json["HourMeter"] = HourMeter;
-  json["PMI_Interval"] = PMI_Interval;
+  json["PMI_Months"] = PMI_Months;
+  json["PMI_Hrs"] = PMI_Hrs;
   json["PMI_Extend"] = PMI_Extend;
-  json["WiFi_Retry"] = WiFi_Retry;
-
+ 
   if (SPIFFS.begin())
   {
     Serial.println("mounted file system");

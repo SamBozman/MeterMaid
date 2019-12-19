@@ -18,16 +18,16 @@ void loop()
   mqttClient.loop(); //NEEDED BY PubSubClient
 
   //############  TEMPORARY FOR TESTING ###########################
-  long now = millis();
-  if (now - lastMsg > 20000)
-  { //Publish every 20 seconds
-    lastMsg = now;
-    ++value;
+  // long now = millis();
+  // if (now - lastMsg > 20000)
+  // { //Publish every 20 seconds
+  //   lastMsg = now;
+  //   ++value;
 
-    Serial.print("ESP32 - to node ");
-    Serial.println(ClientID); //Prints out unique ChipID (MAC address)
-    mqttClient.publish("outTopic", ClientID);
-    Serial.println();
-    }
+  //   Serial.print("ESP32 - to node ");
+  //   Serial.println(ClientID); //Prints out unique ChipID (MAC address)
+  //   mqttClient.publish("outTopic", ClientID);
+  //   Serial.println();
+  //   }
   //############  end  of TEMPORARY FOR TESTING ###########################
 }
