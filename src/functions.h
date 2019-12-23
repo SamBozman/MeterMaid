@@ -17,26 +17,17 @@
 //*********************************************************
 void dataInCallback(char *topic, byte *payload, unsigned int length)
 {
-  StaticJsonBuffer<200> jsonBuffer;
-
-  std::string str;
  
-
   Serial.print("Message arrived [");
-  Serial.println(topic);
+  Serial.print(topic);
   Serial.print("] ");
-
   for (int i = 0; i < length; i++)
   {
     Serial.print((char)payload[i]);
-    str += (char)payload[i];
   }
-  
-  char cstr[str.size() + 1];
-  strcpy(cstr, str.c_str());
 
   Serial.println();
-  Serial.println(cstr);
+
 }
 
 //*********************************************************
