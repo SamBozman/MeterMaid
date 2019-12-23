@@ -21,7 +21,6 @@ char ClientID[23];//ESP unique ID number (Automatically created during setup- al
 
 //define your default values here, if there are different values in config.json,
 //they are overwritten.
-//char UnitID[12] = "N/A"; //Assigned by the database
 char UnitID[16];
 char HourMeter[8] = "0";//Keeps track of hours of operation
 char PMI_Months[3] = "12";//Number of Months to wait to trigger a PMI

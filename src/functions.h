@@ -17,16 +17,26 @@
 //*********************************************************
 void dataInCallback(char *topic, byte *payload, unsigned int length)
 {
+  StaticJsonBuffer<200> jsonBuffer;
+
+  std::string str;
+ 
 
   Serial.print("Message arrived [");
-  Serial.print(topic);
+  Serial.println(topic);
   Serial.print("] ");
+
   for (int i = 0; i < length; i++)
   {
     Serial.print((char)payload[i]);
+    str += (char)payload[i];
   }
+  
+  char cstr[str.size() + 1];
+  strcpy(cstr, str.c_str());
 
   Serial.println();
+  Serial.println(cstr);
 }
 
 //*********************************************************
@@ -40,7 +50,7 @@ void mqttConnect()
     {
       Serial.println("connected");
       // PLACE SUNSCRIBED TOPICS HERE
-      mqttClient.subscribe("inTopic");
+      //mqttClient.subscribe("inTopic");
       mqttClient.subscribe(ClientID);
     }
     else
@@ -84,16 +94,16 @@ void readConfig()
         configFile.readBytes(buf.get(), size);
         DynamicJsonBuffer jsonBuffer;
         JsonObject &json = jsonBuffer.parseObject(buf.get());
-        json.printTo(Serial);
+
         if (json.success())
         {
+          json.printTo(Serial);
           Serial.println("\nparsed json");
           strcpy(UnitID, json["UnitID"]);
-          strcpy(HourMeter, json["HourMeter"]); 
-          strcpy(PMI_Months, json["PMI_Months"]);        
+          strcpy(HourMeter, json["HourMeter"]);
+          strcpy(PMI_Months, json["PMI_Months"]);
           strcpy(PMI_Hrs, json["PMI_Hrs"]);
           strcpy(PMI_Extend, json["PMI_Extend"]);
-         
         }
       }
     }
@@ -104,7 +114,6 @@ void readConfig()
   }
   SPIFFS.end();
 }
-
 
 //*********************************************************
 void saveConfig()
@@ -118,7 +127,7 @@ void saveConfig()
   json["PMI_Months"] = PMI_Months;
   json["PMI_Hrs"] = PMI_Hrs;
   json["PMI_Extend"] = PMI_Extend;
- 
+
   if (SPIFFS.begin())
   {
     Serial.println("mounted file system");
@@ -159,11 +168,14 @@ void goToSleep()
   totTime += runTime;                       // add to accumilator
 
   if (totTime >= 3600)
-    addToHM();
+  {
+    Serial.print("Total time = "); //###############################
+    Serial.print(totTime);         //#######################################
+    Serial.println(" seconds");    //#################################
+    delay(2000);
 
-  Serial.print("Total time = ");
-  Serial.print(totTime);
-  Serial.println(" seconds");
+    addToHM();
+  }
 
   Serial.println("Going to sleep now");
   pinMode(RUN_SENSOR, INPUT_PULLUP);
