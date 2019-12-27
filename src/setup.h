@@ -30,7 +30,8 @@ void setup() //Runs once when first starting program (reset)
   startTime = millis();
   Serial.println("Unit running, Starting Timer. ");
 
-  UnitID[0] = 0; //Set UnitID to an empty string then read configuration from FS json
+  //UnitID[0] = 0; //Set UnitID to an empty string then read configuration from FS json
+  //saveConfig();
   Serial.println("Attempt to read json/config file...");
   readConfig();
 

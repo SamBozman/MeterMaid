@@ -21,11 +21,11 @@ char ClientID[23];//ESP unique ID number (Automatically created during setup- al
 
 //define your default values here, if there are different values in config.json,
 //they are overwritten.
-char UnitID[7];//Unit number
+char UnitID[7] = "N/A";//Unit number
 char HourMeter[6] = "0";//Keeps track of hours of operation
 char PMI_Months[3] = "12";//Number of Months to wait to trigger a PMI
 char PMI_Hrs[4] = "250";//Number of hours to wait until triggering a PMI
-char Date[11]; //Date PMI completed
+char Date[11] = "N/A"; //Date PMI completed
 const int PMI_Extend = 10;//Number of hours to temporarily add to overdue PMI
 // to extend time before issuing a new PMI_Due message
 int HM; //Used to convert char HourMeter into an int

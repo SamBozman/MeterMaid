@@ -24,7 +24,7 @@ void loop()
   //   lastMsg = now;
   //   ++value;
 
-  //   Serial.print("ESP32 - to node ");
+  //   Serial.print(F("ESP32 - to node "));
   //   Serial.println(ClientID); //Prints out unique ChipID (MAC address)
   //   mqttClient.publish("outTopic", ClientID);
   //   Serial.println();
