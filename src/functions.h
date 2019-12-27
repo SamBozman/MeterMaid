@@ -17,7 +17,7 @@
 //*********************************************************
 void dataInCallback(char *topic, byte *payload, unsigned int length)
 {
- 
+
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
@@ -27,7 +27,6 @@ void dataInCallback(char *topic, byte *payload, unsigned int length)
   }
 
   Serial.println();
-
 }
 
 //*********************************************************
@@ -67,6 +66,12 @@ int charToInt(const char *numArray, int *value)
 //*********************************************************
 void readConfig()
 {
+  //   char UnitID[7];//Unit number
+  // char HourMeter[6] = "0";//Keeps track of hours of operation
+  // char PMI_Months[3] = "12";//Number of Months to wait to trigger a PMI
+  // char PMI_Hrs[4] = "250";//Number of hours to wait until triggering a PMI
+  // char Date[11]; //Date PMI completed
+
   if (SPIFFS.begin(true))
   {
     Serial.println("Opened SPIFFS file system");
@@ -78,24 +83,33 @@ void readConfig()
       if (configFile)
       {
         Serial.println("opened config file");
-        size_t size = configFile.size();
         // Allocate a buffer to store contents of the file.
+        size_t size = configFile.size();
         std::unique_ptr<char[]> buf(new char[size]);
-
         configFile.readBytes(buf.get(), size);
-        DynamicJsonBuffer jsonBuffer;
-        JsonObject &json = jsonBuffer.parseObject(buf.get());
 
-        if (json.success())
+        // const char *json = "{\"hello\":\"world\"}";
+        // StaticJsonDocument<200> json;
+        // deserializeJson(doc, json);
+        // const char *world = json["hello"];
+
+        //DynamicJsonDocument json(120);
+        StaticJsonDocument<200> json;
+        DeserializationError error = deserializeJson(json, configFile);
+        // Test if parsing succeeds.
+        if (error)
         {
-          json.printTo(Serial);
-          Serial.println("\nparsed json");
-          strcpy(UnitID, json["UnitID"]);
-          strcpy(HourMeter, json["HourMeter"]);
-          strcpy(PMI_Months, json["PMI_Months"]);
-          strcpy(PMI_Hrs, json["PMI_Hrs"]);
-          strcpy(PMI_Extend, json["PMI_Extend"]);
+          Serial.print(F("deserializeJson() failed: "));
+          Serial.println(error.c_str());
+          return;
         }
+        Serial.print(F("deserializeJson() worked!! "));
+        // Serial.println("\nparsed json");
+        // strcpy(UnitID, json["UnitID"]);
+        // strcpy(HourMeter, json["HourMeter"]);
+        // strcpy(PMI_Months, json["PMI_Months"]);
+        // strcpy(PMI_Hrs, json["PMI_Hrs"]);
+        // strcpy(PMI_Extend, json["PMI_Extend"]);
       }
     }
   }
@@ -106,30 +120,44 @@ void readConfig()
   SPIFFS.end();
 }
 
+
 //*********************************************************
 void saveConfig()
 {
   Serial.println("saving config");
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject &json = jsonBuffer.createObject();
+  //DynamicJsonBuffer jsonBuffer;
+  //JsonObject &json = jsonBuffer.createObject();
 
+  StaticJsonDocument<200> json;
+char UnitID[7];//Unit number
+char HourMeter[6] = "0";//Keeps track of hours of operation
+char PMI_Months[3] = "12";//Number of Months to wait to trigger a PMI
+char PMI_Hrs[4] = "250";//Number of hours to wait until triggering a PMI
+char Date[11]; //Date PMI completed
   json["UnitID"] = UnitID;
   json["HourMeter"] = HourMeter;
   json["PMI_Months"] = PMI_Months;
   json["PMI_Hrs"] = PMI_Hrs;
-  json["PMI_Extend"] = PMI_Extend;
-
+  json["Date"] = Date;
+  
+  //serializeJson(json, file);
+  //file.close();
+  
   if (SPIFFS.begin())
   {
     Serial.println("mounted file system");
 
     File configFile = SPIFFS.open("/config.json", "w");
-    if (configFile)
+
+   if (configFile)
     {
       Serial.println("writing config file");
-      json.prettyPrintTo(Serial);
-      json.printTo(configFile);
+     
+      serializeJson(json, Serial);
+      serializeJson(json, configFile);
+      
       configFile.close();
+
       SPIFFS.end();
       //ESP.restart();
     }
@@ -148,7 +176,7 @@ void addToHM()
   HM = atoi(HourMeter);
   HM += a;
   itoa(HM, HourMeter, 10);
-  saveConfig();
+  //saveConfig(); #####################################################
 }
 
 //*********************************************************

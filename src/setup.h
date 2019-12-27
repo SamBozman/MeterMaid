@@ -35,12 +35,12 @@ void setup() //Runs once when first starting program (reset)
   readConfig();
 
   //If UnitID is empty saveConfig and send message
-  if (strlen(UnitID) == 0)
-  {
-    UnitID[0] = 1;
-    saveConfig(); //Save temporary default configuration
-  }
-  mqttClient.publish("noConfig", ClientID);
-  // //Try to get Unit  config values
-  mqttClient.publish("getConfig", ClientID);
+  // if (strlen(UnitID) == 0)
+  // {
+  //   UnitID[0] = 1;
+  //   saveConfig(); //Save temporary default configuration
+  // }
+  // mqttClient.publish("noConfig", ClientID);
+  // // //Try to get Unit  config values
+  // mqttClient.publish("getConfig", ClientID);
 }
