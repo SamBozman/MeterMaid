@@ -11,10 +11,13 @@ void setup() //Runs once when first starting program (reset)
 
   //The mqtt_server address is the ip address of the local computer that is running
   //your mqtt broker. This address should be set as static!
-
+  Serial.println("Attempting Auto WiFi Connect!)");
   wifiManager.autoConnect("AutoConnectAP");
+  //Program will be blocked here until WiFi has been set up.
   Serial.println("SUCCESS - Auto Connected during setup!)");
-  const char *mqtt_server = "192.168.1.11";     //This address has been set as static
+
+  //FIXME: This address has been set as static
+  const char *mqtt_server = "192.168.1.11";
   esp_sleep_enable_ext0_wakeup(GPIO_NUM_13, 0); //WAKE UP CHIP ON LOW
 
   createChipID();                          //Creates a unique chip ID used for communication
@@ -30,18 +33,22 @@ void setup() //Runs once when first starting program (reset)
   startTime = millis();
   Serial.println("Unit running, Starting Timer. ");
 
-  //UnitID[0] = 0; //Set UnitID to an empty string then read configuration from FS json
-  //saveConfig();
-  Serial.println("Attempt to read json/config file...");
-  readConfig();
+  // FIXME:   Test that this following code works properly
 
-  //If UnitID is empty saveConfig and send message
-  // if (strlen(UnitID) == 0)
-  // {
-  //   UnitID[0] = 1;
-  //   saveConfig(); //Save temporary default configuration
-  // }
-  // mqttClient.publish("noConfig", ClientID);
-  // // //Try to get Unit  config values
-  // mqttClient.publish("getConfig", ClientID);
+  readConfig();                    //If there is no config file then UnitID will stay as '0'
+  int cmp = (strcmp(UnitID, "0")); //If UnitID still equals '0' then ...
+  if (cmp == 0)
+  {
+    Serial.println(F("UnitID does = 0"));
+    strcpy(UnitID, "N/A"); //Change UnitID to N/A until config file is located
+    saveConfig();          //Save temporary default configuration with UnitID = 'N/A'
+  }
+  else
+  {
+    Serial.print(F("UnitID = "));
+    Serial.println(F(UnitID));
+  }
+
+  mqttClient.publish("noConfig", ClientID);  //Always send 'noConfig'
+  mqttClient.publish("getConfig", ClientID); //Always pull the latest config file
 }

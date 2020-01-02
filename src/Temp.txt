@@ -1,0 +1,26 @@
+boolean saveFlag = false;
+
+if (!strcmp(json["UnitID"], UnitID))
+{
+    strcpy(UnitID, json["UnitID"]);
+    saveFlag = true;
+}
+
+if (!strcmp(json["PMI_Months"], PMI_Months))
+{
+    strcpy(PMI_Months, json["PMI_Months"]);
+    saveFlag = true;
+}
+
+if (!strcmp(json["PMI_Hrs"], PMI_Hrs))
+{
+    strcpy(PMI_Hrs, json["PMI_Hrs"]);
+    saveFlag = true;
+}
+
+if (saveFlag)
+{
+    saveConfig();
+}
+
+saveFlag == false;

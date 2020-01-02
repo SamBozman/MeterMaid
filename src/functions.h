@@ -2,33 +2,95 @@
 #include "declarations.h"
 
 //*********************************************************
-// int conCat() //Example of working concatenator
-// {
-//   //Needs work to catch errors
-//   char str[80];
-//   strcpy(str, PMI_Extend);
-//   strcat(str, PMI_Hrs);
-//   strcat(str, " is ");
-//   strcat(str, "concatenated.");
-//   puts(str);
-//   return 0;
-// }
-
-//*********************************************************
 void dataInCallback(char *topic, byte *payload, unsigned int length)
 {
-
+  // TODO: Need to handle various incoming messages here
   Serial.print(F("Message arrived ["));
   Serial.print(topic);
-  Serial.print(F("] "));
-  for (int i = 0; i < length; i++)
+  Serial.println(F("] "));
+  Serial.print("Length of payload = ");
+  Serial.println(length);
+
+  // for (int i = 0; i < length; i++)
+  // {
+  //   Serial.print((char)payload[i]);
+  // }
+  Serial.println();
+
+  StaticJsonDocument<256> json;
+  DeserializationError error = deserializeJson(json, payload);
+  // Test if parsing succeeds.
+  if (error)
   {
-    Serial.print((char)payload[i]);
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error.c_str());
+    json.clear();
+    return;
+  }
+  Serial.println(F("deserializeJson() worked!! "));
+  serializeJsonPretty(json, Serial);
+  Serial.println();
+
+  json.clear();
+}
+//*********************************************************
+void readConfig()
+{
+  if (SPIFFS.begin(true))
+  {
+    Serial.println("Opened SPIFFS file system");
+    if (SPIFFS.exists("/config.json"))
+    {
+      //file exists, reading and loading
+      Serial.println(F("reading config file"));
+      File configFile = SPIFFS.open("/config.json", "r");
+      if (configFile)
+      {
+        Serial.println(F("opened config file"));
+
+        StaticJsonDocument<256> json;
+
+        DeserializationError error = deserializeJson(json, configFile);
+
+        // Test if parsing succeeds.
+        if (error)
+        {
+          Serial.print(F("deserializeJson() failed: "));
+          Serial.println(error.c_str());
+          configFile.close();
+          json.clear();
+          SPIFFS.end();
+          return;
+        }
+        Serial.println(F("deserializeJson() worked!! "));
+        serializeJsonPretty(json, Serial);
+        Serial.println();
+
+        strcpy(UnitID, json["UnitID"]);
+        strcpy(HourMeter, json["HourMeter"]);
+        strcpy(PMI_Months, json["PMI_Months"]);
+        strcpy(PMI_Hrs, json["PMI_Hrs"]);
+        strcpy(Date, json["Date"]);
+        configFile.close();
+        json.clear();
+      }
+      else
+      {
+        Serial.println(F("Could not read config file"));
+      }
+    }
+    else
+    {
+      Serial.println(F("Config file does not exist"));
+    }
+  }
+  else
+  {
+    Serial.println(F("failed to mount FS"));
   }
 
-  Serial.println();
+  SPIFFS.end();
 }
-
 //*********************************************************
 void mqttConnect()
 {
@@ -39,9 +101,8 @@ void mqttConnect()
     if (mqttClient.connect(ClientID))
     {
       Serial.println(F("connected"));
-      // PLACE SUNSCRIBED TOPICS HERE
-      //mqttClient.subscribe("inTopic");
-      mqttClient.subscribe(ClientID);
+      mqttClient.subscribe(ClientID); //We are subscribed to our own ClientID
+      // TODO: Add any other topics here that we need to sudcribe to
     }
     else
     {
@@ -55,48 +116,42 @@ void mqttConnect()
     }
   }
 }
-//*********************************************************
-int charToInt(const char *numArray, int *value)
-{
-  int n = 0;
-  return sscanf(numArray, "%d%n", value, &n) > 0 /* integer was converted */
-         && numArray[n] == '\0';                 /* all input got consumed */
-}
 
 //*********************************************************
 void saveConfig()
 {
   Serial.println(F("saving config"));
-  //DynamicJsonBuffer jsonBuffer;
-  //JsonObject &json = jsonBuffer.createObject();
-  //const int capacity = JSON_OBJECT_SIZE(5);
-
-  //serializeJson(json, file);
-  //file.close();
 
   if (SPIFFS.begin())
   {
     Serial.println(F("mounted file system"));
+    if (SPIFFS.exists("/config.json"))
+    {
+      // Delete existing file, otherwise the configuration is appended to the file
+      Serial.println("removing config.json file");
+      SPIFFS.remove("/config.json");
+    }
+    //Now open(Create) NEW conf.json file
+    File configFile = SPIFFS.open("/config.json", "w");
 
-    File configFile = SPIFFS.open("/conf.json", "w");
-
-    if (configFile)
+    if (configFile) //If a NEW config file was successfully created then ...
     {
       Serial.println("writing config file");
       StaticJsonDocument<256> json;
-      JsonObject object = json.to<JsonObject>();
 
-      object["UnitID"] = "N/A";
-      object["HourMeter"] = HourMeter;
-      object["PMI_Months"] = PMI_Months;
-      object["PMI_Hrs"] = PMI_Hrs;
-      object["Date"] = Date;
+      //Transfer global variables to json document
+      json["UnitID"] = UnitID;
+      json["HourMeter"] = HourMeter;
+      json["PMI_Months"] = PMI_Months;
+      json["PMI_Hrs"] = PMI_Hrs;
+      json["Date"] = Date;
 
-      serializeJson(json, configFile);
-      serializeJsonPretty(json, Serial);
+      serializeJson(json, configFile);   //Write data to config file
+      serializeJsonPretty(json, Serial); //wite data to serial screen
 
       Serial.println();
-      configFile.close();
+      json.clear();       //Clear memory
+      configFile.close(); //Save and close config file
 
       SPIFFS.end();
       //ESP.restart();
@@ -109,68 +164,6 @@ void saveConfig()
 }
 
 //*********************************************************
-void readConfig()
-{
-  //   char UnitID[7];//Unit number
-  // char HourMeter[6] = "0";//Keeps track of hours of operation
-  // char PMI_Months[3] = "12";//Number of Months to wait to trigger a PMI
-  // char PMI_Hrs[4] = "250";//Number of hours to wait until triggering a PMI
-  // char Date[11]; //Date PMI completed
-
-  if (SPIFFS.begin(true))
-  {
-    Serial.println("Opened SPIFFS file system");
-    if (SPIFFS.exists("/conf.json"))
-    {
-      //file exists, reading and loading
-      Serial.println(F("reading config file"));
-      File configFile = SPIFFS.open("/conf.json", "r");
-      if (configFile)
-      {
-        Serial.println(F("opened config file"));
-        // Allocate a buffer to store contents of the file.
-        size_t size = configFile.size();
-        std::unique_ptr<char[]> buf(new char[size]);
-        configFile.readBytes(buf.get(), size);
-        Serial.print(F("configFile = "));
-        Serial.println(buf.get());
-
-        DynamicJsonDocument json(255);
-
-        DeserializationError error = deserializeJson(json, configFile);
-
-        // Test if parsing succeeds.
-        if (error)
-        {
-          Serial.print(F("deserializeJson() failed: "));
-          Serial.println(error.c_str());
-          configFile.close();
-          SPIFFS.end();
-          return;
-        }
-        Serial.print(F("deserializeJson() worked!! "));
-        // extract the data
-        //JsonObject object = doc.as<JsonObject>();
-        //const char *world = object["hello"];
-
-        // Serial.println(F("\nparsed json");
-        // strcpy(UnitID, json["UnitID"]);
-        // strcpy(HourMeter, json["HourMeter"]);
-        // strcpy(PMI_Months, json["PMI_Months"]);
-        // strcpy(PMI_Hrs, json["PMI_Hrs"]);
-        // strcpy(PMI_Extend, json["PMI_Extend"]);
-      }
-    }
-  }
-  else
-  {
-    Serial.println(F("failed to mount FS"));
-  }
-
-  SPIFFS.end();
-}
-
-//*********************************************************
 void addToHM()
 {
   int a = totTime / 3600;
@@ -178,7 +171,7 @@ void addToHM()
   HM = atoi(HourMeter);
   HM += a;
   itoa(HM, HourMeter, 10);
-  //saveConfig(); #####################################################
+  //saveConfig(); // TODO:  Remove comment lines when finished testing
 }
 
 //*********************************************************
@@ -191,7 +184,7 @@ void goToSleep()
   if (totTime >= 3600)
   {
     Serial.print(F("Total time = ")); //###############################
-    Serial.print(totTime);         //#######################################
+    Serial.print(totTime);            //#######################################
     Serial.println(F(" seconds"));    //#################################
     delay(2000);
 
@@ -204,25 +197,25 @@ void goToSleep()
 }
 
 //*********************************************************
-void openAP()
+void openAP() //TODO: Test this function
 {
   //sets timeout until configuration portal gets turned off
   wifiManager.setTimeout(120);
   //Triggered when 'Save' button is pressed on AP WebServer
 
-  //set static ip
+  //FIXME: See if static ip address is necessary or??
   wifiManager.setSTAStaticIPConfig(IPAddress(10, 0, 1, 99), IPAddress(10, 0, 1, 1), IPAddress(255, 255, 255, 0));
 
   //reset settings - uncomment below for testing
   //wifiManager.resetSettings();
 
-  //defaults to 8%
+  // Set minimum signal strength - defaults to 8%
   //wifiManager.setMinimumSignalQuality();
 
   if (!wifiManager.startConfigPortal("OnDemandAP"))
   {
     Serial.println(F("failed to connect and hit timeout"));
-    delay(1000);
+    delay(500);
     //reset and try again, or maybe put it to deep sleep
     ESP.restart();
     Serial.println(F("Restarting ESP"));
