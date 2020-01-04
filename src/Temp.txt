@@ -1,26 +1,20 @@
-boolean saveFlag = false;
+ 
+ 
+ 
+ char sOut[length + 2];
+  serializeJson(json, sOut, sizeof(sOut));
+  Serial.println(sOut);
 
-if (!strcmp(json["UnitID"], UnitID))
-{
-    strcpy(UnitID, json["UnitID"]);
-    saveFlag = true;
-}
-
-if (!strcmp(json["PMI_Months"], PMI_Months))
-{
-    strcpy(PMI_Months, json["PMI_Months"]);
-    saveFlag = true;
-}
-
-if (!strcmp(json["PMI_Hrs"], PMI_Hrs))
-{
-    strcpy(PMI_Hrs, json["PMI_Hrs"]);
-    saveFlag = true;
-}
-
-if (saveFlag)
-{
-    saveConfig();
-}
-
-saveFlag == false;
+  json.clear();
+  DeserializationError error2 = deserializeJson(json, sOut);
+  // Test if parsing succeeds.
+  if (error2)
+  {
+    Serial.print(F("deserializeJson() failed: "));
+    Serial.println(error2.c_str());
+    json.clear();
+    return;
+  }
+  const char *uID = json["Unit_ID"];
+  Serial.print("Unit ID = ");
+  Serial.println(uID);

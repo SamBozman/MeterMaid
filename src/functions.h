@@ -11,28 +11,29 @@ void dataInCallback(char *topic, byte *payload, unsigned int length)
   Serial.print("Length of payload = ");
   Serial.println(length);
 
-  // for (int i = 0; i < length; i++)
-  // {
-  //   Serial.print((char)payload[i]);
-  // }
   Serial.println();
 
-  StaticJsonDocument<256> json;
-  DeserializationError error = deserializeJson(json, payload);
+  char myPayload[] = "{\"ESPModule_ID\":\"ESP-C835F9BF713C\",\"Unit_ID\":\"FL-105D\",\"PMI_Class\":\"FL-D\",\"PMI_Hours\":150,\"PMI_Months\":12}";
+  StaticJsonDocument<256> doc;
+  DeserializationError error = deserializeJson(doc, myPayload);
   // Test if parsing succeeds.
   if (error)
   {
     Serial.print(F("deserializeJson() failed: "));
     Serial.println(error.c_str());
-    json.clear();
+    doc.clear();
     return;
   }
   Serial.println(F("deserializeJson() worked!! "));
-  serializeJsonPretty(json, Serial);
+  serializeJsonPretty(doc, Serial);
   Serial.println();
+  strcpy(UnitID, doc["Unit_ID"]);
+  Serial.print("UnitID = ");
+  Serial.println(UnitID);
 
-  json.clear();
+  doc.clear();
 }
+
 //*********************************************************
 void readConfig()
 {
