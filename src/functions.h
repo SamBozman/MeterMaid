@@ -4,34 +4,37 @@
 //*********************************************************
 void dataInCallback(char *topic, byte *payload, unsigned int length)
 {
-  // TODO: Need to handle various incoming messages here
   Serial.print(F("Message arrived ["));
   Serial.print(topic);
   Serial.println(F("] "));
-  Serial.print("Length of payload = ");
-  Serial.println(length);
+
+  for (int i = 0; i < length; i++)
+  {
+    Serial.print((char)payload[i]);
+  }
 
   Serial.println();
+  //byte mypayload[] = "{\"ESPModule_ID\":\"ESP-C835F9BF713C\",\"Unit_ID\":\"FL-105D\",\"PMI_Class\":\"FL-D\",\"PMI_Hours\":150,\"PMI_Months\":12}";
 
-  char myPayload[] = "{\"ESPModule_ID\":\"ESP-C835F9BF713C\",\"Unit_ID\":\"FL-105D\",\"PMI_Class\":\"FL-D\",\"PMI_Hours\":150,\"PMI_Months\":12}";
   StaticJsonDocument<256> doc;
-  DeserializationError error = deserializeJson(doc, myPayload);
+
+  DeserializationError error = deserializeJson(doc, payload);
   // Test if parsing succeeds.
   if (error)
   {
     Serial.print(F("deserializeJson() failed: "));
     Serial.println(error.c_str());
-    doc.clear();
     return;
   }
   Serial.println(F("deserializeJson() worked!! "));
+  JsonObject repo0 = doc[0]; //Because an array was returned
+
+  const char *UID = repo0["Unit_ID"];
+  Serial.print("UnitID = ");
+  Serial.println(UID);
+
   serializeJsonPretty(doc, Serial);
   Serial.println();
-  strcpy(UnitID, doc["Unit_ID"]);
-  Serial.print("UnitID = ");
-  Serial.println(UnitID);
-
-  doc.clear();
 }
 
 //*********************************************************
