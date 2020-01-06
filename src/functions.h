@@ -4,20 +4,8 @@
 //*********************************************************
 void dataInCallback(char *topic, byte *payload, unsigned int length)
 {
-  Serial.print(F("Message arrived ["));
-  Serial.print(topic);
-  Serial.println(F("] "));
-
-  for (int i = 0; i < length; i++)
-  {
-    Serial.print((char)payload[i]);
-  }
-
-  Serial.println();
-  //byte mypayload[] = "{\"ESPModule_ID\":\"ESP-C835F9BF713C\",\"Unit_ID\":\"FL-105D\",\"PMI_Class\":\"FL-D\",\"PMI_Hours\":150,\"PMI_Months\":12}";
-
+  boolean cmp_flag = false; //Used to compare database config with saved config
   StaticJsonDocument<256> doc;
-
   DeserializationError error = deserializeJson(doc, payload);
   // Test if parsing succeeds.
   if (error)
@@ -27,14 +15,35 @@ void dataInCallback(char *topic, byte *payload, unsigned int length)
     return;
   }
   Serial.println(F("deserializeJson() worked!! "));
-  JsonObject repo0 = doc[0]; //Because an array was returned
-
-  const char *UID = repo0["Unit_ID"];
-  Serial.print("UnitID = ");
-  Serial.println(UID);
-
+  JsonObject arr0 = doc[0]; //Because an array was returned
   serializeJsonPretty(doc, Serial);
   Serial.println();
+  //Extract the values
+  const char *UID = arr0["UnitID"];
+  int P_Mths = arr0["PMI_Months"];
+  int P_Hrs = arr0["PMI_Hrs"];
+
+  //Compare and set flag true if any one of the values is NOT equal
+  if (!strcmp(UID, UnitID) == 0)
+    cmp_flag = true;
+  if (!P_Mths == atoi(PMI_Months))
+    cmp_flag = true;
+  if (!P_Hrs == atoi(PMI_Hrs))
+    cmp_flag = true;
+
+  //if flag is true then copy and save new values
+  if (cmp_flag)
+  {
+    strcpy(UnitID, UID);
+    //char *  itoa ( int value, char * str, int base );
+    itoa(P_Mths, PMI_Months, 10);
+    itoa(P_Hrs, PMI_Hrs, 10);
+    saveConfig(); //Save new config
+  }
+  else
+  {
+    Serial.println(F("Database config was unchanged!")); //Value were the same
+  }
 }
 
 //*********************************************************
@@ -156,7 +165,7 @@ void saveConfig()
       Serial.println();
       json.clear();       //Clear memory
       configFile.close(); //Save and close config file
-
+      Serial.println(F("Config was saved to SPIFFS!"));
       SPIFFS.end();
       //ESP.restart();
     }
@@ -174,6 +183,7 @@ void addToHM()
   totTime = totTime % 3600;
   HM = atoi(HourMeter);
   HM += a;
+  //char *  itoa ( int value, char * str, int base );
   itoa(HM, HourMeter, 10);
   //saveConfig(); // TODO:  Remove comment lines when finished testing
 }

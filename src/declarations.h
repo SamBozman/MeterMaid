@@ -23,7 +23,7 @@ char UnitID[8] = "0";      //Unit number is assigned '0' to test for config comp
 char HourMeter[6] = "0";   //Keeps track of hours of operation
 char PMI_Months[3] = "12"; //Number of Months to wait to trigger a PMI
 char PMI_Hrs[4] = "250";   //Number of hours to wait until triggering a PMI
-char Date[11];             //Date last PMI completed
+char Date[11] = "N/A";     //Date last PMI completed
 
 const int PMI_Extend = 10; //Number of hours to temporarily add to overdue PMI
 
