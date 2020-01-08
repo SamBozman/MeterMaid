@@ -18,17 +18,17 @@ void setup() //Runs once when first starting program (reset)
 
   //FIXME: This address has been set as static
   const char *mqtt_server = "192.168.1.11";
-  esp_sleep_enable_ext0_wakeup(GPIO_NUM_13, 0); //WAKE UP CHIP ON LOW
-
-  createChipID();                          //Creates a unique chip ID used for communication
   mqttClient.setServer(mqtt_server, 1883); //Ip address and port #
   mqttClient.setCallback(dataInCallback);
-  //mqttConnect(); //Connect to MQTT server
+  createChipID(); //Creates a unique chip ID used for communication
+
+  esp_sleep_enable_ext0_wakeup(GPIO_NUM_13, 0); //WAKE UP CHIP ON LOW
 
   //Increment boot number and print it every reboot
   Serial.println("Boot number: " + String(bootCount));
   ++bootCount;
 
+  lastNow = 0; //used by mqttConnect (non-blocking)
   runTime = 0; // reset runTime
   startTime = millis();
   Serial.println("Unit running, Starting Timer. ");
