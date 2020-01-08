@@ -27,19 +27,11 @@ char Date[11] = "N/A";     //Date last PMI completed
 
 const int PMI_Extend = 10; //Number of hours to temporarily add to overdue PMI
 
-// to extend time before issuing a new PMI_Due message
-int HM; //Used to convert char HourMeter into an int
-
-long lastMsg = 0;
-char msg[50]; //String containing out-going Publish message
-long value = 0;
-
-// select which pin will trigger the configuration portal when set to LOW
-// ESP-01 users please note: the only pins available (0 and 2), are shared
-// with the bootloader, so always set them HIGH at power-up
 unsigned long startTime = 0;
 unsigned long stopTime = 0;
 unsigned long runTime = 0;
+
+unsigned long lastNow = 0; //used by mqttConnect (non-blocking)
 
 #define AP_REQUEST 25
 #define RUN_SENSOR 13

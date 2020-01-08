@@ -23,7 +23,7 @@ void setup() //Runs once when first starting program (reset)
   createChipID();                          //Creates a unique chip ID used for communication
   mqttClient.setServer(mqtt_server, 1883); //Ip address and port #
   mqttClient.setCallback(dataInCallback);
-  mqttConnect(); //Connect to MQTT server
+  //mqttConnect(); //Connect to MQTT server
 
   //Increment boot number and print it every reboot
   Serial.println("Boot number: " + String(bootCount));
@@ -48,7 +48,4 @@ void setup() //Runs once when first starting program (reset)
     Serial.print(F("UnitID = "));
     Serial.println(F(UnitID));
   }
-
-  mqttClient.publish("noConfig", ClientID);  //Always send 'noConfig'
-  mqttClient.publish("getConfig", ClientID); //Always pull the latest config file
 }

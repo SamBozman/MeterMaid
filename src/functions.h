@@ -26,9 +26,9 @@ void dataInCallback(char *topic, byte *payload, unsigned int length)
   //Compare and set flag true if any one of the values is NOT equal
   if (!strcmp(UID, UnitID) == 0)
     cmp_flag = true;
-  if (!P_Mths == atoi(PMI_Months))
+  if (!(P_Mths == atoi(PMI_Months)))
     cmp_flag = true;
-  if (!P_Hrs == atoi(PMI_Hrs))
+  if (!(P_Hrs == atoi(PMI_Hrs)))
     cmp_flag = true;
 
   //if flag is true then copy and save new values
@@ -114,8 +114,9 @@ void mqttConnect()
     if (mqttClient.connect(ClientID))
     {
       Serial.println(F("connected"));
-      mqttClient.subscribe(ClientID); //We are subscribed to our own ClientID
-      // TODO: Add any other topics here that we need to sudcribe to
+      mqttClient.subscribe(ClientID);            //Add subscribed topics here
+      mqttClient.publish("noConfig", ClientID);  //Always send 'noConfig'
+      mqttClient.publish("getConfig", ClientID); //Always pull the latest config file
     }
     else
     {
@@ -179,6 +180,7 @@ void saveConfig()
 //*********************************************************
 void addToHM()
 {
+  int HM; //Used to convert char HourMeter into an int
   int a = totTime / 3600;
   totTime = totTime % 3600;
   HM = atoi(HourMeter);
