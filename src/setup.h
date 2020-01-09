@@ -9,14 +9,10 @@ void setup() //Runs once when first starting program (reset)
   pinMode(RUN_SENSOR, INPUT_PULLUP);
   delay(1000); //Take some time to open up the Serial Monitor
 
-  //The mqtt_server address is the ip address of the local computer that is running
-  //your mqtt broker. This address should be set as static!
   Serial.println("Attempting Auto WiFi Connect!)");
   wifiManager.autoConnect("AutoConnectAP");
   //Program will be blocked here until WiFi has been set up.
 
-  //FIXME: This address has been set as static
-  const char *mqtt_server = "192.168.1.11";
   mqttClient.setServer(mqtt_server, 1883); //Ip address and port #
   mqttClient.setCallback(dataInCallback);
   createChipID(); //Creates a unique chip ID used for communication

@@ -14,6 +14,10 @@ WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 WiFiManager wifiManager;
 
+//The mqtt_server address is the ip address of the local computer that is running
+//your mqtt broker. This address should be set as static!
+const char *mqtt_server = "192.168.1.11";
+
 //Unique ID used to identify inividual ESP32 chips
 char ClientID[23]; //ESP unique ID number (Automatically created during setup- always the same)
 
