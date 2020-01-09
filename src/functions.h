@@ -180,30 +180,27 @@ void saveConfig()
 //*********************************************************
 void addToHM()
 {
-  int HM; //Used to convert char HourMeter into an int
-  int a = totTime / 3600;
-  totTime = totTime % 3600;
+  int HM;                   //Used to convert char HourMeter into an int
+  int a = totTime / 3600;   //This gives a the integer value of the division
+  totTime = totTime % 3600; //This keeps the remainder for future saves
   HM = atoi(HourMeter);
   HM += a;
   //char *  itoa ( int value, char * str, int base );
   itoa(HM, HourMeter, 10);
-  //saveConfig(); // TODO:  Remove comment lines when finished testing
+  saveConfig();
 }
-
 //*********************************************************
 void goToSleep()
 {
+  //If you saved every hour, 24 hours a day, every day you would take 11 years
+  //before you reached the 100,000 save limit of the SPIFFS system
+
   stopTime = millis();
   runTime += (stopTime - startTime) / 1000; // last run time in seconds
   totTime += runTime;                       // add to accumilator
 
-  if (totTime >= 3600)
+  if (totTime >= 3600) // 3600 seconds = 1 hour
   {
-    Serial.print(F("Total time = ")); //###############################
-    Serial.print(totTime);            //#######################################
-    Serial.println(F(" seconds"));    //#################################
-    delay(2000);
-
     addToHM();
   }
 
