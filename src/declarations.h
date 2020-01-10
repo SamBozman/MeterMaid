@@ -35,7 +35,13 @@ unsigned long startTime = 0;
 unsigned long stopTime = 0;
 unsigned long runTime = 0;
 
-unsigned long lastNow = 0; //used by mqttConnect (non-blocking)
+/* Two "independant" timed events */
+const long E1 = 10000; //Event 1 in ms
+const long E2 = 5000;  //Event 2 in ms
+
+/* Mark when last time the Event was set */
+unsigned long Last_E1 = 0; //Starts out as 0
+unsigned long Last_E2 = 0; //Starts out as 0
 
 #define AP_REQUEST 25
 #define RUN_SENSOR 13

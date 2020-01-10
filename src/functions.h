@@ -1,8 +1,7 @@
 #pragma once
 #include "declarations.h"
 
-//*********************************************************
-void dataInCallback(char *topic, byte *payload, unsigned int length)
+void updateConfig(byte *payload, unsigned int length)
 {
   boolean cmp_flag = false; //Used to compare database config with saved config
   StaticJsonDocument<256> doc;
@@ -43,6 +42,20 @@ void dataInCallback(char *topic, byte *payload, unsigned int length)
   else
   {
     Serial.println(F("Database config was unchanged!")); //Value were the same
+  }
+}
+
+//*********************************************************
+void dataInCallback(char *topic, byte *payload, unsigned int length)
+{
+  if (strcmp(topic, ClientID) == 0)
+  {
+    Serial.println("Getting config file");
+    updateConfig(payload, length);
+  }
+  else
+  {
+    Serial.println("CallBack Topic is " + String(topic));
   }
 }
 
@@ -107,27 +120,20 @@ void readConfig()
 //*********************************************************
 void mqttConnect()
 {
-  // Loop until we're reconnected
-  while (!mqttClient.connected())
+  if (mqttClient.connect(ClientID))
   {
-    Serial.print("Attempting MQTT connection...");
-    if (mqttClient.connect(ClientID))
-    {
-      Serial.println(F("connected"));
-      mqttClient.subscribe(ClientID);            //Add subscribed topics here
-      mqttClient.publish("noConfig", ClientID);  //Always send 'noConfig'
-      mqttClient.publish("getConfig", ClientID); //Always pull the latest config file
-    }
-    else
-    {
-      Serial.print(F("RC error = :"));
-      Serial.println(F("failed, rc="));
-      Serial.print("State = :");
-      Serial.println(mqttClient.state());
-      Serial.println(F(" try again in 5 seconds"));
-      // Wait 5 seconds before retrying
-      delay(5000);
-    }
+    Serial.println(F("connected"));
+    mqttClient.subscribe(ClientID);            //Add subscribed topics here
+    mqttClient.publish("noConfig", ClientID);  //Always send 'noConfig'
+    mqttClient.publish("getConfig", ClientID); //Always pull the latest config file
+  }
+  else
+  {
+    Serial.print(F("RC error = :"));
+    Serial.println(F("failed, rc="));
+    Serial.print("State = :");
+    Serial.println(mqttClient.state());
+    Serial.println(F(" try again in 5 seconds"));
   }
 }
 
