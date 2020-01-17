@@ -9,6 +9,10 @@
 #include <WiFiManager.h> //https://github.com/tzapu/WiFiManager/tree/development
 #include <PubSubClient.h>
 #include <ArduinoJson.h> //https://github.com/bblanchon/ArduinoJsonn
+#include <stdio.h>       /* puts */
+#include <time.h>        /* time_t, struct tm, time, localtime, strftime */
+#include <iostream>
+#include <string.h>
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
@@ -27,7 +31,8 @@ char UnitID[8] = "0";      //Unit number is assigned '0' to test for config comp
 char HourMeter[6] = "0";   //Keeps track of hours of operation
 char PMI_Months[3] = "12"; //Number of Months to wait to trigger a PMI
 char PMI_Hrs[4] = "250";   //Number of hours to wait until triggering a PMI
-char Date[11] = "N/A";     //Date last PMI completed
+char Last_PMI[11] = "N/A"; //Date last PMI completed
+char Now[11] = "N/A";      //Current Date and time
 
 const int PMI_Extend = 10; //Number of hours to temporarily add to overdue PMI
 
@@ -51,11 +56,15 @@ RTC_DATA_ATTR unsigned long totTime = 0;
 
 boolean runSensorState = false; //Unit not running
 
-void mqttConnect();
-void dataInCallback(char *topic, byte *payload, unsigned int length);
-void saveConfig();
-void goToSleep(); //Sub declaration required by ccp
+//All functions must be delcared here
 void openAP();
-void addToHM();
-void readConfig();
 void createChipID();
+void mqttConnect();
+void readConfig();
+void saveConfig();
+void getAscTime(char *ptr_time);
+void updateConfig(byte *payload, unsigned int length);
+void dataInCallback(char *topic, byte *payload, unsigned int length);
+
+void goToSleep(); //Sub declaration required by ccp
+void addToHM();

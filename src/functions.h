@@ -3,6 +3,7 @@
 
 void updateConfig(byte *payload, unsigned int length)
 {
+  //This function handles the config update for topic = ClientID
   boolean cmp_flag = false; //Used to compare database config with saved config
   StaticJsonDocument<256> doc;
   DeserializationError error = deserializeJson(doc, payload);
@@ -44,10 +45,11 @@ void updateConfig(byte *payload, unsigned int length)
     Serial.println(F("Database config was unchanged!")); //Value were the same
   }
 }
-
 //*********************************************************
 void dataInCallback(char *topic, byte *payload, unsigned int length)
 {
+  //This function handles all CallBacks for all subscribed topics
+  //and then routes them to the appropriate function
   if (strcmp(topic, ClientID) == 0)
   {
     Serial.println("Getting config file");
@@ -58,7 +60,32 @@ void dataInCallback(char *topic, byte *payload, unsigned int length)
     Serial.println("CallBack Topic is " + String(topic));
   }
 }
+//*********************************************************
+void checkPmiDue() //In Progress
+{
+  //This function is called when a PMI is due by Hrs or by Date
+  Serial.println("Preparing Json file for Node-Red");
+  StaticJsonDocument<256> json;
 
+  //Transfer global variables to json document
+  json["UnitID"] = UnitID;
+  json["HourMeter"] = HourMeter;
+  json["PMI_Months"] = PMI_Months;
+  json["PMI_Hrs"] = PMI_Hrs;
+  json["Last_PMI"] = Last_PMI;
+
+  Serial.println();
+  json.clear(); //Clear memory
+}
+//*********************************************************
+void getAscTime(char *ptr_time)
+{
+  time_t rawtime;
+  struct tm *timeinfo;
+  time(&rawtime);
+  timeinfo = gmtime(&rawtime);
+  strftime(ptr_time, 11, "%F", timeinfo);
+}
 //*********************************************************
 void readConfig()
 {
@@ -96,7 +123,7 @@ void readConfig()
         strcpy(HourMeter, json["HourMeter"]);
         strcpy(PMI_Months, json["PMI_Months"]);
         strcpy(PMI_Hrs, json["PMI_Hrs"]);
-        strcpy(Date, json["Date"]);
+        strcpy(Last_PMI, json["Last_PMI"]);
         configFile.close();
         json.clear();
       }
@@ -126,6 +153,9 @@ void mqttConnect()
     mqttClient.subscribe(ClientID);            //Add subscribed topics here
     mqttClient.publish("noConfig", ClientID);  //Always send 'noConfig'
     mqttClient.publish("getConfig", ClientID); //Always pull the latest config file
+    char *time_now(Now);                       //Set pointer to address of variable 'Now'
+    getAscTime(time_now);                      //Puts date into char array 'Now'
+    std::cout << "Date now is :" << Now << "\n";
   }
   else
   {
@@ -136,7 +166,6 @@ void mqttConnect()
     Serial.println(F(" try again in 5 seconds"));
   }
 }
-
 //*********************************************************
 void saveConfig()
 {
@@ -164,7 +193,7 @@ void saveConfig()
       json["HourMeter"] = HourMeter;
       json["PMI_Months"] = PMI_Months;
       json["PMI_Hrs"] = PMI_Hrs;
-      json["Date"] = Date;
+      json["Last_PMI"] = Last_PMI;
 
       serializeJson(json, configFile);   //Write data to config file
       serializeJsonPretty(json, Serial); //wite data to serial screen
@@ -182,7 +211,6 @@ void saveConfig()
     Serial.println(F("failed to mount FS"));
   }
 }
-
 //*********************************************************
 void addToHM()
 {
@@ -214,7 +242,6 @@ void goToSleep()
   pinMode(RUN_SENSOR, INPUT_PULLUP);
   esp_deep_sleep_start();
 }
-
 //*********************************************************
 void openAP() //TODO: Test this function
 {
