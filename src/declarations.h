@@ -1,5 +1,6 @@
 #pragma once
 //INCLUDES
+#define _GLIBCXX_USE_C99 1
 #include <FS.h> //this needs to be first, or it all crashes and burns...
 #include "SPIFFS.h"
 #include <Arduino.h>
@@ -12,7 +13,10 @@
 #include <stdio.h>       /* puts */
 #include <time.h>        /* time_t, struct tm, time, localtime, strftime */
 #include <iostream>
+#include <string>
 #include <string.h>
+#include <sstream>
+using namespace std;
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
@@ -23,16 +27,17 @@ WiFiManager wifiManager;
 const char *mqtt_server = "192.168.1.11";
 
 //Unique ID used to identify inividual ESP32 chips
-char ClientID[23]; //ESP unique ID number (Automatically created during setup- always the same)
+char ClientID[11];   //ESP unique ID number (Automatically created during setup- always the same)
+char ClientID_t[13]; //Subscription to get current time/date
 
 //define your default values here, if there are different values in config.json,
 //they are overwritten.
-char UnitID[8] = "0";      //Unit number is assigned '0' to test for config completion
-char HourMeter[6] = "0";   //Keeps track of hours of operation
-char PMI_Months[3] = "12"; //Number of Months to wait to trigger a PMI
-char PMI_Hrs[4] = "250";   //Number of hours to wait until triggering a PMI
-char Last_PMI[11] = "N/A"; //Date last PMI completed
-char Now[11] = "N/A";      //Current Date and time
+char UnitID[8] = "0";                   //Unit number is assigned '0' to test for config completion
+char HourMeter[6] = "0";                //Keeps track of hours of operation
+char PMI_Months[3] = "12";              //Number of Months to wait to trigger a PMI
+char PMI_Hrs[4] = "250";                //Number of hours to wait until triggering a PMI
+char Last_PMI[11] = "N/A";              //Date last PMI completed
+unsigned long long int CurrentTime = 0; //Current Date and time
 
 const int PMI_Extend = 10; //Number of hours to temporarily add to overdue PMI
 
@@ -41,12 +46,13 @@ unsigned long stopTime = 0;
 unsigned long runTime = 0;
 
 /* Two "independant" timed events */
-const long E1 = 10000; //Event 1 in ms
-const long E2 = 5000;  //Event 2 in ms
+const long EventInterval1 = 10000; //Event 1 in ms
+const long EventInterval2 = 5000;  //Event 2 in ms
 
 /* Mark when last time the Event was set */
-unsigned long Last_E1 = 0; //Starts out as 0
-unsigned long Last_E2 = 0; //Starts out as 0
+unsigned long Last_Event1 = 0; //Starts out as 0
+unsigned long Last_Event2 = 0; //Starts out as 0
+unsigned long now = 0;         //Used for timing with millis
 
 #define AP_REQUEST 25
 #define RUN_SENSOR 13
@@ -62,9 +68,8 @@ void createChipID();
 void mqttConnect();
 void readConfig();
 void saveConfig();
-void getAscTime(char *ptr_time);
 void updateConfig(byte *payload, unsigned int length);
 void dataInCallback(char *topic, byte *payload, unsigned int length);
-
+char const *getSubscription(const char *in);
 void goToSleep(); //Sub declaration required by ccp
 void addToHM();

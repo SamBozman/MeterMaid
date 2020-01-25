@@ -4,7 +4,6 @@
 void updateConfig(byte *payload, unsigned int length)
 {
   //This function handles the config update for topic = ClientID
-  boolean cmp_flag = false; //Used to compare database config with saved config
   StaticJsonDocument<256> doc;
   DeserializationError error = deserializeJson(doc, payload);
   // Test if parsing succeeds.
@@ -22,22 +21,34 @@ void updateConfig(byte *payload, unsigned int length)
   const char *UID = arr0["UnitID"];
   int P_Mths = arr0["PMI_Months"];
   int P_Hrs = arr0["PMI_Hrs"];
+  //int U_Hrs = arr0["HourMeter"];
+  //const char *P_UH = arr0["Date_Completed"];
 
+  boolean cmp_flag = false; //Used to compare database config with saved config
   //Compare and set flag true if any one of the values is NOT equal
+  // if (!(U_Hrs == 0))
+  // {
+  //   itoa(U_Hrs, HourMeter, 10);
+  //   cmp_flag = true;
+  // }
   if (!strcmp(UID, UnitID) == 0)
     cmp_flag = true;
   if (!(P_Mths == atoi(PMI_Months)))
     cmp_flag = true;
   if (!(P_Hrs == atoi(PMI_Hrs)))
     cmp_flag = true;
+  // if (!strcmp(P_UH, Last_PMI) == 0)
+  //   cmp_flag = true;
 
-  //if flag is true then copy and save new values
-  if (cmp_flag)
+  if (cmp_flag) //if flag is true then copy and save new values
   {
     strcpy(UnitID, UID);
     //char *  itoa ( int value, char * str, int base );
     itoa(P_Mths, PMI_Months, 10);
     itoa(P_Hrs, PMI_Hrs, 10);
+    //strcpy(Last_PMI, P_UH);
+    Serial.println(F("Database config was changed!")); //Value were the same
+    //mqttClient.publish("confirmConfig", UnitID);       //Update database to confirm new parameters
     saveConfig(); //Save new config
   }
   else
@@ -50,14 +61,27 @@ void dataInCallback(char *topic, byte *payload, unsigned int length)
 {
   //This function handles all CallBacks for all subscribed topics
   //and then routes them to the appropriate function
-  if (strcmp(topic, ClientID) == 0)
+  if (strcmp(topic, ClientID) == 0) //Config callback
   {
     Serial.println("Getting config file");
     updateConfig(payload, length);
   }
   else
   {
-    Serial.println("CallBack Topic is " + String(topic));
+    if (strcmp(topic, ClientID_t) == 0) // Current Time call back
+    {
+      char time[length];
+      for (int i = 0; i < length; i++)
+      {
+        time[i] = (char)payload[i];
+      }
+      time[length] = '\0';
+      Serial.print("time = ");
+      Serial.println(time);
+      //CurrentTime = atoi(time);
+      sscanf(time, "%llu", &CurrentTime);
+      cout << "Integer time is: " << CurrentTime << "\n";
+    }
   }
 }
 //*********************************************************
@@ -77,15 +101,7 @@ void checkPmiDue() //In Progress
   Serial.println();
   json.clear(); //Clear memory
 }
-//*********************************************************
-void getAscTime(char *ptr_time)
-{
-  time_t rawtime;
-  struct tm *timeinfo;
-  time(&rawtime);
-  timeinfo = gmtime(&rawtime);
-  strftime(ptr_time, 11, "%F", timeinfo);
-}
+
 //*********************************************************
 void readConfig()
 {
@@ -144,18 +160,19 @@ void readConfig()
 
   SPIFFS.end();
 }
+
 //*********************************************************
 void mqttConnect()
 {
   if (mqttClient.connect(ClientID))
   {
     Serial.println(F("connected"));
-    mqttClient.subscribe(ClientID);            //Add subscribed topics here
+    mqttClient.subscribe(ClientID);   //Each client has it's own unique subscription
+    mqttClient.subscribe(ClientID_t); //subscription to current time/date
+
+    mqttClient.publish("getTime", ClientID_t); //Always send 'noConfig'
     mqttClient.publish("noConfig", ClientID);  //Always send 'noConfig'
     mqttClient.publish("getConfig", ClientID); //Always pull the latest config file
-    char *time_now(Now);                       //Set pointer to address of variable 'Now'
-    getAscTime(time_now);                      //Puts date into char array 'Now'
-    std::cout << "Date now is :" << Now << "\n";
   }
   else
   {
@@ -273,11 +290,8 @@ void openAP() //TODO: Test this function
 //*********************************************************
 void createChipID()
 {
-  uint16_t chip;
   uint64_t chipid;
-  chipid = ESP.getEfuseMac(); //The chip ID is essentially its MAC address(length: 6 bytes).
-  chip = (uint16_t)(chipid >> 32);
-  snprintf(ClientID, 23, "ESP-%04X%08X", chip, (uint32_t)chipid);
-  Serial.print(F("The chip ID is "));
-  Serial.println(ClientID);
+  chipid = ESP.getEfuseMac();                           //ESP Mac ID
+  snprintf(ClientID, 11, "E-%X", (uint32_t)chipid);     //ClientID #
+  snprintf(ClientID_t, 13, "E-%X/t", (uint32_t)chipid); //time subscription ID
 }

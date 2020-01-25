@@ -26,6 +26,7 @@
     "array": "cpp",
     "utility": "cpp",
     "typeinfo": "cpp",
-    "ctime": "cpp"
+    "ctime": "cpp",
+    "iostream": "cpp"
   }
 }

@@ -3,7 +3,7 @@
 void loop()
 {
   /* Updates frequently */
-  unsigned long now = millis();
+  now = millis();
 
   runSensorState = digitalRead(RUN_SENSOR); // read the run sensor state (High is OFF and LOW is on)
 
@@ -13,26 +13,19 @@ void loop()
   if (digitalRead(AP_REQUEST) == LOW)
     openAP();
 
-  /* This is my event_1 */
-  // if (now - Last_E1 >= E1)
-  // {
-  //   Serial.println("Timer for event 1 just fired: ");
-  //   Last_E1 = now;
-  // }
+  delay(100);
+  mqttClient.loop(); //NEEDED BY PubSubClient
 
   if (mqttClient.connected())
   {
-    Last_E2 = now;
+    Last_Event2 = millis();
   }
   else
   {
-    if (now - Last_E2 >= E2)
+    if (now - Last_Event2 >= EventInterval2)
     {
       mqttConnect();
-      now = millis();
-      Last_E2 = now;
+      Last_Event2 = millis();
     }
   }
-  delay(100);
-  mqttClient.loop(); //NEEDED BY PubSubClient
 }
