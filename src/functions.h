@@ -21,24 +21,24 @@ void updateConfig(byte *payload, unsigned int length)
   const char *UID = arr0["UnitID"];
   int P_Mths = arr0["PMI_Months"];
   int P_Hrs = arr0["PMI_Hrs"];
-  //int U_Hrs = arr0["HourMeter"];
-  //const char *P_UH = arr0["Date_Completed"];
+  int U_Hrs = arr0["Preset_Hrs"];
+  const char *P_UH = arr0["Last_PMI"];
 
   boolean cmp_flag = false; //Used to compare database config with saved config
   //Compare and set flag true if any one of the values is NOT equal
-  // if (!(U_Hrs == 0))
-  // {
-  //   itoa(U_Hrs, HourMeter, 10);
-  //   cmp_flag = true;
-  // }
+  if (!(U_Hrs == NULL))
+  {
+    itoa(U_Hrs, HourMeter, 10);
+    cmp_flag = true;
+  }
   if (!strcmp(UID, UnitID) == 0)
     cmp_flag = true;
   if (!(P_Mths == atoi(PMI_Months)))
     cmp_flag = true;
   if (!(P_Hrs == atoi(PMI_Hrs)))
     cmp_flag = true;
-  // if (!strcmp(P_UH, Last_PMI) == 0)
-  //   cmp_flag = true;
+  if (!strcmp(P_UH, Last_PMI) == 0)
+    cmp_flag = true;
 
   if (cmp_flag) //if flag is true then copy and save new values
   {
@@ -46,10 +46,10 @@ void updateConfig(byte *payload, unsigned int length)
     //char *  itoa ( int value, char * str, int base );
     itoa(P_Mths, PMI_Months, 10);
     itoa(P_Hrs, PMI_Hrs, 10);
-    //strcpy(Last_PMI, P_UH);
+    strcpy(Last_PMI, P_UH);
     Serial.println(F("Database config was changed!")); //Value were the same
-    //mqttClient.publish("confirmConfig", UnitID);       //Update database to confirm new parameters
-    saveConfig(); //Save new config
+    mqttClient.publish("confirmConfig", UnitID);       //Update database to confirm new parameters
+    saveConfig();                                      //Save new config
   }
   else
   {
