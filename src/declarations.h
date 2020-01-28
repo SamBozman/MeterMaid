@@ -1,58 +1,48 @@
 #pragma once
-//INCLUDES
-#define _GLIBCXX_USE_C99 1
-#include <FS.h> //this needs to be first, or it all crashes and burns...
+// INCLUDES
+//#define _GLIBCXX_USE_C99 1
 #include "SPIFFS.h"
 #include <Arduino.h>
-#include <WiFi.h> //https://github.com/esp8266/Arduino
-#include <DNSServer.h>
-#include <WebServer.h>
-#include <WiFiManager.h> //https://github.com/tzapu/WiFiManager/tree/development
-#include <PubSubClient.h>
 #include <ArduinoJson.h> //https://github.com/bblanchon/ArduinoJsonn
-#include <stdio.h>       /* puts */
-#include <time.h>        /* time_t, struct tm, time, localtime, strftime */
+#include <DNSServer.h>
+#include <FS.h> //this needs to be first, or it all crashes and burns...
+#include <PubSubClient.h>
+#include <WebServer.h>
+#include <WiFi.h>        //https://github.com/esp8266/Arduino
+#include <WiFiManager.h> //https://github.com/tzapu/WiFiManager/tree/development
 #include <iostream>
-#include <string>
-#include <string.h>
 #include <sstream>
+#include <stdio.h>
+#include <string.h>
+#include <string>
+#include <time.h>
 using namespace std;
 
 WiFiClient espClient;
 PubSubClient mqttClient(espClient);
 WiFiManager wifiManager;
-
-//The mqtt_server address is the ip address of the local computer that is running
-//your mqtt broker. This address should be set as static!
 const char *mqtt_server = "192.168.1.11";
 
-//Unique ID used to identify inividual ESP32 chips
-char ClientID[11];   //ESP unique ID number (Automatically created during setup- always the same)
-char ClientID_t[13]; //Subscription to get current time/date
+char ClientID[11];
+char ClientID_t[13];
 
-//define your default values here, if there are different values in config.json,
-//they are overwritten.
-char UnitID[8] = "0";                   //Unit number is assigned '0' to test for config completion
-char HourMeter[6] = "0";                //Keeps track of hours of operation
-char PMI_Months[3] = "12";              //Number of Months to wait to trigger a PMI
-char PMI_Hrs[4] = "250";                //Number of hours to wait until triggering a PMI
-char Last_PMI[11] = "N/A";              //Date last PMI completed
-unsigned long long int CurrentTime = 0; //Current Date and time
-
-const int PMI_Extend = 10; //Number of hours to temporarily add to overdue PMI
+char UnitID[8] = "0";
+char HourMeter[6] = "0";
+char PMI_Months[3] = "12";
+char PMI_Hrs[4] = "250";
+char Last_PMI[11] = "N/A";
+unsigned long int CurrentTime = 0;
 
 unsigned long startTime = 0;
 unsigned long stopTime = 0;
 unsigned long runTime = 0;
 
-/* Two "independant" timed events */
-const long EventInterval1 = 10000; //Event 1 in ms
-const long EventInterval2 = 5000;  //Event 2 in ms
+const long EventInterval1 = 10000;
+const long EventInterval2 = 5000;
 
-/* Mark when last time the Event was set */
-unsigned long Last_Event1 = 0; //Starts out as 0
-unsigned long Last_Event2 = 0; //Starts out as 0
-unsigned long now = 0;         //Used for timing with millis
+unsigned long Last_Event1 = 0;
+unsigned long Last_Event2 = 0;
+unsigned long now = 0;
 
 #define AP_REQUEST 25
 #define RUN_SENSOR 13
@@ -60,9 +50,9 @@ unsigned long now = 0;         //Used for timing with millis
 RTC_DATA_ATTR int bootCount = 0;
 RTC_DATA_ATTR unsigned long totTime = 0;
 
-boolean runSensorState = false; //Unit not running
+boolean runSensorState = false;
 
-//All functions must be delcared here
+// All functions must be delcared here
 void openAP();
 void createChipID();
 void mqttConnect();
@@ -71,5 +61,6 @@ void saveConfig();
 void updateConfig(byte *payload, unsigned int length);
 void dataInCallback(char *topic, byte *payload, unsigned int length);
 char const *getSubscription(const char *in);
-void goToSleep(); //Sub declaration required by ccp
+void goToSleep();
 void addToHM();
+void strToUnix(char *ptr);
