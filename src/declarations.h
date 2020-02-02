@@ -64,3 +64,5 @@ char const *getSubscription(const char *in);
 void goToSleep();
 void addToHM();
 void strToUnix(char *ptr);
+char *strptime(const char *__restrict, const char *__restrict,
+               struct tm *__restrict);

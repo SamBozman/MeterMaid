@@ -1,6 +1,39 @@
 #pragma once
 #include "declarations.h"
 
+//*********************************************************
+void checkPmiDue() {
+  // char strTime[11] = "2020-01-27"; // Last_PMI
+  const long int secondsInaDay = 86400; // Number of seconds in a day
+  const long int minDate = 1264695154;
+  const int PMI_days = 30 * atoi(PMI_Months);
+  unsigned long int unixLastPmi;
+  int int_HourMeter = atoi(HourMeter);
+  int int_PMI_Hrs = atoi(PMI_Hrs);
+
+  // check for PMI due by months
+  char *ptr_strTime = Last_PMI;
+  struct tm tm;
+  time_t ts;
+  memset(&tm, 0, sizeof(struct tm));
+  strptime(ptr_strTime, "%Y-%m-%d", &tm);
+  ts = mktime(&tm);
+  unixLastPmi = (int)ts;
+
+  int daysSinceLastPMI = (CurrentTime - unixLastPmi) / secondsInaDay;
+  cout << "Days since last pmi = " << daysSinceLastPMI << endl;
+  if (daysSinceLastPMI > PMI_days) {
+    cout << "PMI DUE by Months" << endl;
+  }
+
+  // check for PMI due by Hourmeter
+  cout << "HourMeter = " << HourMeter << endl;
+  cout << "int_PMI_Hrs = " << int_PMI_Hrs << endl;
+  if (int_HourMeter > int_PMI_Hrs) {
+    cout << "PMI DUE by Hourmeter" << endl;
+  }
+}
+//*********************************************************
 void updateConfig(byte *payload, unsigned int length) {
   StaticJsonDocument<256> doc;
   DeserializationError error = deserializeJson(doc, payload);
@@ -48,54 +81,30 @@ void updateConfig(byte *payload, unsigned int length) {
   } else {
     Serial.println(F("Database config was unchanged!"));
   }
-
+  checkPmiDue();
   Serial.println();
 }
 //*********************************************************
 void dataInCallback(char *topic, byte *payload, unsigned int length) {
+  // getConfig
   if (strcmp(topic, ClientID) == 0) {
     Serial.println("Getting config file");
     updateConfig(payload, length);
   } else {
+    // get timestamp
     if (strcmp(topic, ClientID_t) == 0) {
-      char time[length];
-      for (int i = 0; i < length; i++) {
-        time[i] = (char)payload[i];
+      cout << "Topic = ClientID_t " << endl;
+      if (length == (13)) {
+        char time[length - 2];
+        for (int i = 0; i < length - 3; i++) {
+          time[i] = (char)payload[i];
+        }
+        time[length - 3] = '\0';
+        CurrentTime = strtol(time, NULL, 10);
+        cout << "Current UnixTimestamp is: " << CurrentTime << endl;
       }
-      time[length] = '\0';
-      Serial.print("time = ");
-      Serial.println(time);
-      // CurrentTime = atoi(time);
-      sscanf(time, "%lu", &CurrentTime);
-      cout << "Integer time is: " << CurrentTime << "\n";
     }
   }
-}
-
-//*********************************************************
-void checkPmiDue() {
-  // char strTime[11] = "2020-01-27"; // Last_PMI
-  const long int mSec = 2628288; // Number of seconds in a month
-  unsigned long int pSec = mSec * atoi(PMI_Months);
-
-  char *ptr_strTime = Last_PMI; // Set pointer to address of variable 'strTime
-  struct tm tm;
-  time_t ts;
-  memset(&tm, 0, sizeof(struct tm));
-  strptime(ptr_strTime, "%Y-%m-%d", &tm);
-  // tm.tm_mon = tm.tm_mon - 1;
-  ts = mktime(&tm);
-
-  printf("%d \n", (int)ts); // unix time-stamp
-
-  int HM, PH, DH;
-  HM = atoi(HourMeter);
-  PH = atoi(PMI_Hrs);
-  DH = PH - HM;
-  cout << "DH = " << DH << endl;
-  //   if(DH <= -1){
-  // Serial.println("PMI is DUE!");
-  //   }
 }
 
 //*********************************************************
@@ -153,7 +162,7 @@ void mqttConnect() {
     mqttClient.publish("getTime", ClientID_t);
     mqttClient.publish("noConfig", ClientID);
     mqttClient.publish("getConfig", ClientID);
-    checkPmiDue();
+
   } else {
     Serial.print(F("RC error = :"));
     Serial.println(F("failed, rc="));
