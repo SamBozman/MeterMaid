@@ -3,7 +3,7 @@
 
 //*********************************************************
 void checkPmiDue() {
-  // char strTime[11] = "2020-01-27"; // Last_PMI
+
   const long int secondsInaDay = 86400; // Number of seconds in a day
   const long int minDate = 1264695154;
   const int PMI_days = 30 * atoi(PMI_Months);
@@ -19,18 +19,34 @@ void checkPmiDue() {
   strptime(ptr_strTime, "%Y-%m-%d", &tm);
   ts = mktime(&tm);
   unixLastPmi = (int)ts;
-
+  int Over = 0;
   int daysSinceLastPMI = (CurrentTime - unixLastPmi) / secondsInaDay;
   cout << "Days since last pmi = " << daysSinceLastPMI << endl;
   if (daysSinceLastPMI > PMI_days) {
+    Over = daysSinceLastPMI - PMI_days;
     cout << "PMI DUE by Months" << endl;
+    StaticJsonDocument<128> jsonObj;
+    jsonObj["UnitID"] = UnitID;
+    jsonObj["Note"] = "Days overdue:";
+    jsonObj["Overdue_by"] = Over;
+    char buffer[128];
+    serializeJson(jsonObj, buffer);
+    mqttClient.publish("PMI_due", buffer);
   }
 
   // check for PMI due by Hourmeter
   cout << "HourMeter = " << HourMeter << endl;
   cout << "int_PMI_Hrs = " << int_PMI_Hrs << endl;
   if (int_HourMeter > int_PMI_Hrs) {
+    Over = int_HourMeter - int_PMI_Hrs;
     cout << "PMI DUE by Hourmeter" << endl;
+    StaticJsonDocument<128> jsonObj;
+    jsonObj["UnitID"] = UnitID;
+    jsonObj["Note"] = "Hours overdue:";
+    jsonObj["Overdue_by"] = Over;
+    char buffer[128];
+    serializeJson(jsonObj, buffer);
+    mqttClient.publish("PMI_due", buffer);
   }
 }
 //*********************************************************

@@ -1,6 +1,7 @@
 #include "setup.h"
 
 void loop() {
+
   now = millis();
 
   runSensorState = digitalRead(RUN_SENSOR);
@@ -12,6 +13,8 @@ void loop() {
 
   delay(100);
   mqttClient.loop();
+
+  // if (WiFi.status() != WL_CONNECTED)
 
   if (mqttClient.connected()) {
     Serial.print(F("*"));
