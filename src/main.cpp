@@ -11,9 +11,6 @@ void loop() {
   if (digitalRead(AP_REQUEST) == LOW)
     openAP();
 
-  delay(100);
-  mqttClient.loop();
-
   // if (WiFi.status() != WL_CONNECTED)
 
   if (mqttClient.connected()) {
@@ -24,4 +21,7 @@ void loop() {
       mqttConnect();
     }
   }
+  mqttClient.loop();
+  delay(100); // Helps with WiFi Stability
+  // disconnect() //Disconnects the client.
 }
