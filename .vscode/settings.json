@@ -27,7 +27,8 @@
     "utility": "cpp",
     "typeinfo": "cpp",
     "ctime": "cpp",
-    "iostream": "cpp"
+    "iostream": "cpp",
+    "sstream": "cpp"
   },
   "C_Cpp.errorSquiggles": "Disabled"
 }

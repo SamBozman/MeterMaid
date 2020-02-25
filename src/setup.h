@@ -4,18 +4,19 @@
 void setup() {
 
   Serial.begin(115200);
+  pinMode(AP_LED, OUTPUT);
   pinMode(AP_REQUEST, INPUT_PULLUP);
   pinMode(RUN_SENSOR, INPUT_PULLUP);
-  delay(1000);
-  WiFi.mode(WIFI_STA);
-  Serial.println("Attempting Auto WiFi Connect!)");
-  wifiManager.autoConnect("AutoConnectAP");
 
+  delay(1000);
+  createChipID();
+  configWiFi();
+
+  mqttClient.setClient(espClient);
   mqttClient.setServer(mqtt_server, 1883);
   mqttClient.setCallback(dataInCallback);
 
-  createChipID();
-
+  Serial.println(WiFi.macAddress());
   esp_sleep_enable_ext0_wakeup(GPIO_NUM_13, 0);
 
   ++bootCount;

@@ -1,6 +1,33 @@
 #pragma once
 #include "declarations.h"
 
+//*******************************************************************************
+void heartBeatPrint(void) {
+  static int num = 1;
+
+  if (WiFi.status() == WL_CONNECTED)
+    Serial.print("^"); // ^ means connected to WiFi
+  else
+    Serial.print("x"); // x means not connected to WiFi
+
+  if (num == 80) {
+    Serial.println();
+    num = 1;
+  } else if (num++ % 10 == 0) {
+    Serial.print(" ");
+  }
+}
+//*******************************************************************************
+void check_status() {
+  static ulong checkstatus_timeout = 0;
+
+#define HEARTBEAT_INTERVAL 10000L
+  // Print hearbeat every HEARTBEAT_INTERVAL (10) seconds.
+  if ((millis() > checkstatus_timeout) || (checkstatus_timeout == 0)) {
+    heartBeatPrint();
+    checkstatus_timeout = millis() + HEARTBEAT_INTERVAL;
+  }
+}
 //*********************************************************
 void checkPmiDue() {
 
@@ -122,7 +149,6 @@ void dataInCallback(char *topic, byte *payload, unsigned int length) {
     }
   }
 }
-
 //*********************************************************
 void readConfig() {
   if (SPIFFS.begin(true)) {
@@ -167,7 +193,6 @@ void readConfig() {
 
   SPIFFS.end();
 }
-
 //*********************************************************
 void mqttConnect() {
   if (mqttClient.connect(ClientID)) {
@@ -251,24 +276,100 @@ void goToSleep() {
   pinMode(RUN_SENSOR, INPUT_PULLUP);
   esp_deep_sleep_start();
 }
-//*********************************************************
-void openAP() // TODO: Test this function
-{
-  wifiManager.setTimeout(120); // 2 minutes
-  // FIXME: See if static ip address is necessary or??
-  wifiManager.setSTAStaticIPConfig(IPAddress(10, 0, 1, 99),
-                                   IPAddress(10, 0, 1, 1),
-                                   IPAddress(255, 255, 255, 0));
+//*******************************************************************************
+void configWiFi() {
+  unsigned long startedAt = millis();
+  ESP_WiFiManager ESP_wifiManager("ConfigOnSwitch");
 
-  // wifiManager.resetSettings();
-  if (!wifiManager.startConfigPortal("OnDemandAP")) {
-    Serial.println(F("failed to connect and hit timeout"));
-    delay(500);
-    ESP.restart();
-    Serial.println(F("Restarting ESP"));
+  ESP_wifiManager.setMinimumSignalQuality(8);
+  // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
+  ESP_wifiManager.setSTAStaticIPConfig(
+      IPAddress(192, 168, 2, 114), IPAddress(192, 168, 2, 1),
+      IPAddress(255, 255, 255, 0), IPAddress(192, 168, 2, 1),
+      IPAddress(8, 8, 8, 8));
+
+  Router_SSID = ESP_wifiManager.WiFi_SSID();
+  Router_Pass = ESP_wifiManager.WiFi_Pass();
+  Serial.println("Stored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
+  apWiFiD.toUpperCase();
+
+  // if (Router_SSID == "") {
+  //   Serial.println("Open AP");
+  //   digitalWrite(AP_LED, HIGH);
+
+  //   if (!ESP_wifiManager.startConfigPortal((const char *)apWiFID.c_str(),
+  //                                          apPwd))
+  //     Serial.println("Not connected to WiFi but continuing anyway.");
+  //   else
+  //     Serial.println("WiFi connected...yeey :)");
+  // }
+  // digitalWrite(AP_LED, LOW);
+
+#define WIFI_CONNECT_TIMEOUT 30000L
+#define WHILE_LOOP_DELAY 200L
+#define WHILE_LOOP_STEPS (WIFI_CONNECT_TIMEOUT / (3 * WHILE_LOOP_DELAY))
+
+  startedAt = millis();
+
+  while ((WiFi.status() != WL_CONNECTED) &&
+         (millis() - startedAt < WIFI_CONNECT_TIMEOUT)) {
+    WiFi.mode(WIFI_STA);
+    WiFi.persistent(true);
+    // We start by connecting to a WiFi network
+
+    Serial.print("Attempting to connect to ");
+    Serial.println(Router_SSID);
+
+    WiFi.begin(Router_SSID.c_str(), Router_Pass.c_str());
+
+    int i = 0;
+    while ((!WiFi.status() || WiFi.status() >= WL_DISCONNECTED) &&
+           i++ < WHILE_LOOP_STEPS) {
+      delay(WHILE_LOOP_DELAY);
+    }
   }
-  Serial.println(F("WiFi Connected!"));
-  ESP.restart();
+
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.print("connected. Local IP: ");
+    Serial.println(WiFi.localIP());
+  } else
+    Serial.println(ESP_wifiManager.getStatus(WiFi.status()));
+}
+//*********************************************************
+void openAP() {
+  Serial.println("\nConfiguration portal requested.");
+  digitalWrite(AP_LED, HIGH); // turn the LED on by making the voltage LOW
+                              // to tell us we are in configuration mode.
+
+  // Local intialization. Once its business is done, there is no need to keep
+  // it around
+  ESP_WiFiManager ESP_wifiManager;
+
+  // Check if there is stored WiFi router/password credentials.
+  // If not found, device will remain in configuration mode until switched off
+  // via webserver.
+  Serial.print("Opening configuration portal. ");
+  Router_SSID = ESP_wifiManager.WiFi_SSID();
+  if (Router_SSID != "") {
+    ESP_wifiManager.setConfigPortalTimeout(
+        60); // If no access point name has been previously entered disable
+             // timeout.
+    Serial.println("Got stored Credentials. Timeout 60s");
+  } else
+    Serial.println("No stored Credentials. No timeout");
+
+  // it starts an access point
+  // and goes into a blocking loop awaiting configuration
+  if (!ESP_wifiManager.startConfigPortal((const char *)apWiFiD.c_str(),
+                                         apPwd)) {
+    Serial.println("Not connected to WiFi but continuing anyway.");
+  } else {
+    // if you get here you have connected to the WiFi
+    Serial.println("connected...yeey :)");
+  }
+
+  digitalWrite(AP_LED,
+               LOW); // Turn led off as we are not in configuration mode.
 }
 //*********************************************************
 void createChipID() {
