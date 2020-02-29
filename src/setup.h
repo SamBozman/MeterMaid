@@ -10,6 +10,8 @@ void setup() {
 
   delay(1000);
   createChipID();
+  Serial.print("ClientID = ");
+  Serial.println(ClientID);
   configWiFi();
 
   mqttClient.setClient(espClient);

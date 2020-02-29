@@ -2,29 +2,24 @@
 #include "declarations.h"
 
 //*******************************************************************************
-void heartBeatPrint(void) {
-  static int num = 1;
-
-  if (WiFi.status() == WL_CONNECTED)
-    Serial.print("^"); // ^ means connected to WiFi
-  else
-    Serial.print("x"); // x means not connected to WiFi
-
-  if (num == 80) {
-    Serial.println();
-    num = 1;
-  } else if (num++ % 10 == 0) {
-    Serial.print(" ");
-  }
-}
-//*******************************************************************************
 void check_status() {
   static ulong checkstatus_timeout = 0;
-
 #define HEARTBEAT_INTERVAL 10000L
   // Print hearbeat every HEARTBEAT_INTERVAL (10) seconds.
   if ((millis() > checkstatus_timeout) || (checkstatus_timeout == 0)) {
-    heartBeatPrint();
+    static int num = 1;
+
+    if (WiFi.status() == WL_CONNECTED)
+      Serial.print("^"); // ^ means connected to WiFi
+    else
+      Serial.print("x"); // x means not connected to WiFi
+
+    if (num == 80) {
+      Serial.println();
+      num = 1;
+    } else if (num++ % 10 == 0) {
+      Serial.print(" ");
+    }
     checkstatus_timeout = millis() + HEARTBEAT_INTERVAL;
   }
 }
@@ -56,6 +51,7 @@ void checkPmiDue() {
     jsonObj["UnitID"] = UnitID;
     jsonObj["Note"] = "Days overdue:";
     jsonObj["Overdue_by"] = Over;
+    jsonObj["Triggered_by"] = "Date";
     char buffer[128];
     serializeJson(jsonObj, buffer);
     mqttClient.publish("PMI_due", buffer);
@@ -71,6 +67,7 @@ void checkPmiDue() {
     jsonObj["UnitID"] = UnitID;
     jsonObj["Note"] = "Hours overdue:";
     jsonObj["Overdue_by"] = Over;
+    jsonObj["Triggered_by"] = "HourMeter";
     char buffer[128];
     serializeJson(jsonObj, buffer);
     mqttClient.publish("PMI_due", buffer);
@@ -292,6 +289,10 @@ void configWiFi() {
   Router_Pass = ESP_wifiManager.WiFi_Pass();
   Serial.println("Stored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
   apWiFiD.toUpperCase();
+
+  if (Router_SSID == "") {
+    openAP();
+  }
 
   // if (Router_SSID == "") {
   //   Serial.println("Open AP");

@@ -4,6 +4,7 @@ void loop() {
   runSensorState = digitalRead(RUN_SENSOR);
   // put your main code here, to run repeatedly
   check_status();
+  // if (WiFi.status() == WL_CONNECTED)
 
   // if (mqttClient.connected()) {
   //   Serial.print(F("*"));

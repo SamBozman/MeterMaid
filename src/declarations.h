@@ -76,6 +76,6 @@ void addToHM();
 void strToUnix(char *ptr);
 char *strptime(const char *__restrict, const char *__restrict,
                struct tm *__restrict);
-void heartBeatPrint(void);
+// void heartBeatPrint(void);
 void check_status();
 void configWiFi();
