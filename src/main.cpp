@@ -1,24 +1,36 @@
 #include "setup.h"
 
+//********************************************************************
 void loop() {
   runSensorState = digitalRead(RUN_SENSOR);
-  // put your main code here, to run repeatedly
   check_status();
-  // if (WiFi.status() == WL_CONNECTED)
+  currentMQTT_Millis = millis();
 
-  // if (mqttClient.connected()) {
-  //   Serial.print(F("*"));
-  //   Last_Event2 = millis();
-  // } else {
-  //   if (now - Last_Event2 >= EventInterval2) {
-  //     mqttConnect();
-  //   }
-  // }
+  if (WiFi.status() == WL_CONNECTED) {
+    if ((strcmp("N/A", UnitID) == 0) &&
+        (currentMQTT_Millis - startMQTT_Millis >= MQTT_Interval)) {
+      if (mqttConnect()) {
+        mqttClient.publish("getTime", ClientID_t);
+        mqttClient.publish("insertESP", ClientID);
+        mqttClient.publish("getConfig", ClientID);
+      }
+      // mqttClient.disconnect();
+      startMQTT_Millis = currentMQTT_Millis;
+    } else {
+      if ((!strcmp("N/A", UnitID) == 0) &&
+          (currentMQTT_Millis - startMQTT_Millis >= MQTT_Interval)) {
+        if (mqttConnect()) {
+          mqttClient.publish("getTime", ClientID_t);
+          mqttClient.publish("getConfig", ClientID);
+        }
+        // mqttClient.disconnect();
+        startMQTT_Millis = currentMQTT_Millis;
+      }
+    }
+  }
+
   mqttClient.loop();
   delay(100); // Helps with WiFi Stability
-              // disconnect() //Disconnects the client.
-
-  //#######################################
   if (runSensorState == HIGH)
     goToSleep();
 

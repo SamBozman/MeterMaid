@@ -44,7 +44,7 @@ void checkPmiDue() {
   int Over = 0;
   int daysSinceLastPMI = (CurrentTime - unixLastPmi) / secondsInaDay;
   cout << "Days since last pmi = " << daysSinceLastPMI << endl;
-  if (daysSinceLastPMI > PMI_days) {
+  if (daysSinceLastPMI >= PMI_days) {
     Over = daysSinceLastPMI - PMI_days;
     cout << "PMI DUE by Months" << endl;
     StaticJsonDocument<128> jsonObj;
@@ -60,7 +60,7 @@ void checkPmiDue() {
   // check for PMI due by Hourmeter
   cout << "HourMeter = " << HourMeter << endl;
   cout << "int_PMI_Hrs = " << int_PMI_Hrs << endl;
-  if (int_HourMeter > int_PMI_Hrs) {
+  if (int_HourMeter >= int_PMI_Hrs) {
     Over = int_HourMeter - int_PMI_Hrs;
     cout << "PMI DUE by Hourmeter" << endl;
     StaticJsonDocument<128> jsonObj;
@@ -86,7 +86,7 @@ void updateConfig(byte *payload, unsigned int length) {
   JsonObject arr0 = doc[0];
   serializeJsonPretty(doc, Serial);
   Serial.println();
-  // Extract the values
+  // Extract the downloaded values
   const char *UID = arr0["UnitID"];
   int P_Mths = arr0["PMI_Months"];
   int P_Hrs = arr0["PMI_Hrs"];
@@ -176,6 +176,8 @@ void readConfig() {
         strcpy(PMI_Months, json["PMI_Months"]);
         strcpy(PMI_Hrs, json["PMI_Hrs"]);
         strcpy(Last_PMI, json["Last_PMI"]);
+        strcpy(Last_MQTT, json["Last_MQTT"]);
+
         configFile.close();
         json.clear();
       } else {
@@ -191,22 +193,23 @@ void readConfig() {
   SPIFFS.end();
 }
 //*********************************************************
-void mqttConnect() {
+bool mqttConnect() {
   if (mqttClient.connect(ClientID)) {
-    Serial.println(F("connected"));
+    Serial.println(F("mqttClient connected"));
     mqttClient.subscribe(ClientID);
     mqttClient.subscribe(ClientID_t);
-
-    mqttClient.publish("getTime", ClientID_t);
-    mqttClient.publish("noConfig", ClientID);
-    mqttClient.publish("getConfig", ClientID);
+    return true;
+    // mqttClient.publish("getTime", ClientID_t);
+    // mqttClient.publish("insertESP", ClientID);
+    // mqttClient.publish("getConfig", ClientID);
 
   } else {
     Serial.print(F("RC error = :"));
     Serial.println(F("failed, rc="));
     Serial.print("State = :");
     Serial.println(mqttClient.state());
-    Serial.println(F(" try again in 5 seconds"));
+    return false;
+    // Serial.println(F(" try again in 5 seconds"));
   }
 }
 //*********************************************************
@@ -231,6 +234,7 @@ void saveConfig() {
       json["PMI_Months"] = PMI_Months;
       json["PMI_Hrs"] = PMI_Hrs;
       json["Last_PMI"] = Last_PMI;
+      json["Last_MQTT"] = Last_MQTT;
 
       serializeJson(json, configFile);
       serializeJsonPretty(json, Serial);

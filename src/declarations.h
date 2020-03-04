@@ -44,14 +44,18 @@ char HourMeter[6] = "0";
 char PMI_Months[3] = "12";
 char PMI_Hrs[4] = "250";
 char Last_PMI[11] = "N/A";
+char Last_MQTT[11] = "N/A";
+
 unsigned long int CurrentTime = 0;
 
 unsigned long startTime = 0;
 unsigned long stopTime = 0;
 unsigned long runTime = 0;
 
-const long MQTT_Interval = 21600000; // 6 hours
-unsigned long Last_MQTT_Event = 0;
+const long MQTT_Interval =
+    60000; // 1 min for testing. Should be at leats 15 min
+unsigned long startMQTT_Millis;
+unsigned long currentMQTT_Millis;
 
 #define AP_REQUEST 25
 #define RUN_SENSOR 13
@@ -65,7 +69,7 @@ boolean runSensorState = false;
 // All functions must be delcared here
 void openAP();
 void createChipID();
-void mqttConnect();
+bool mqttConnect();
 void readConfig();
 void saveConfig();
 void updateConfig(byte *payload, unsigned int length);

@@ -1,0 +1,20 @@
+// mqttClient.publish("getTime", ClientID_t);
+// mqttClient.publish("noConfig", ClientID);
+// mqttClient.publish("getConfig", ClientID);
+
+//  if (mqttClient.connected())
+//   {
+//   if (mqttClient.connected()) {
+//     Serial.print(F("*"));
+//     Last_Event2 = millis();
+//   }
+//   else
+//   {
+//     if (now - Last_Event2 >= EventInterval2)
+//     {
+//   } else {
+//     if (now - Last_Event2 >= EventInterval2) {
+//       mqttConnect();
+//       Last_Event2 = millis();
+//     }
+//   }
