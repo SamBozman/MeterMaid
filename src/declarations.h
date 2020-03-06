@@ -23,7 +23,7 @@
 #include <esp_wifi.h>
 
 using namespace std;
-WiFiClient espClient;
+WiFiClient mqttWiFiClient;
 PubSubClient mqttClient;
 // WiFiManager wifiManager;
 const char *mqtt_server = "192.168.1.11";
@@ -57,7 +57,7 @@ const long MQTT_Interval =
 unsigned long startMQTT_Millis;
 unsigned long currentMQTT_Millis;
 
-#define AP_REQUEST 25
+#define AP_REQUEST 0 // Built in boot switch
 #define RUN_SENSOR 13
 #define AP_LED 2
 

@@ -9,16 +9,19 @@ void loop() {
   if (WiFi.status() == WL_CONNECTED) {
     if ((strcmp("N/A", UnitID) == 0) &&
         (currentMQTT_Millis - startMQTT_Millis >= MQTT_Interval)) {
+      Serial.println(F("Attempting MQTT connection!! "));
       if (mqttConnect()) {
         mqttClient.publish("getTime", ClientID_t);
         mqttClient.publish("insertESP", ClientID);
         mqttClient.publish("getConfig", ClientID);
+        startMQTT_Millis = currentMQTT_Millis;
       }
       // mqttClient.disconnect();
-      startMQTT_Millis = currentMQTT_Millis;
+
     } else {
       if ((!strcmp("N/A", UnitID) == 0) &&
           (currentMQTT_Millis - startMQTT_Millis >= MQTT_Interval)) {
+        Serial.println(F("Attempting MQTT connection!! "));
         if (mqttConnect()) {
           mqttClient.publish("getTime", ClientID_t);
           mqttClient.publish("getConfig", ClientID);

@@ -47,12 +47,14 @@ void checkPmiDue() {
   if (daysSinceLastPMI >= PMI_days) {
     Over = daysSinceLastPMI - PMI_days;
     cout << "PMI DUE by Months" << endl;
-    StaticJsonDocument<128> jsonObj;
+    StaticJsonDocument<256> jsonObj;
     jsonObj["UnitID"] = UnitID;
     jsonObj["Note"] = "Days overdue:";
+    jsonObj["Last_PMI"] = Last_PMI;
+    jsonObj["HourMeter"] = HourMeter;
     jsonObj["Overdue_by"] = Over;
     jsonObj["Triggered_by"] = "Date";
-    char buffer[128];
+    char buffer[256];
     serializeJson(jsonObj, buffer);
     mqttClient.publish("PMI_due", buffer);
   }
@@ -63,12 +65,14 @@ void checkPmiDue() {
   if (int_HourMeter >= int_PMI_Hrs) {
     Over = int_HourMeter - int_PMI_Hrs;
     cout << "PMI DUE by Hourmeter" << endl;
-    StaticJsonDocument<128> jsonObj;
+    StaticJsonDocument<256> jsonObj;
     jsonObj["UnitID"] = UnitID;
     jsonObj["Note"] = "Hours overdue:";
+    jsonObj["Last_PMI"] = Last_PMI;
+    jsonObj["HourMeter"] = HourMeter;
     jsonObj["Overdue_by"] = Over;
     jsonObj["Triggered_by"] = "HourMeter";
-    char buffer[128];
+    char buffer[256];
     serializeJson(jsonObj, buffer);
     mqttClient.publish("PMI_due", buffer);
   }

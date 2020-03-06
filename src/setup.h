@@ -14,7 +14,7 @@ void setup() {
   Serial.println(ClientID);
   configWiFi();
 
-  mqttClient.setClient(espClient);
+  mqttClient.setClient(mqttWiFiClient);
   mqttClient.setServer(mqtt_server, 1883);
   mqttClient.setCallback(dataInCallback);
 
