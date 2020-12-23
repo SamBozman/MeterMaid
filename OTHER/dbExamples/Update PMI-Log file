@@ -1,0 +1,5 @@
+UPDATE PMI_Logs
+SET HourMeter = 0,
+Note = '(Config revised)'
+WHERE Date_Completed = (SELECT MAX(Date_Completed) FROM PMI_Logs)
+    AND UnitID = "TT-601P"

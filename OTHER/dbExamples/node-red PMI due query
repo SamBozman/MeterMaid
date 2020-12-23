@@ -1,0 +1,6 @@
+INSERT INTO PMI_Logs(UnitID, Posted_On, Note, Overdue_by)
+VALUES ('BT-109F', DATE('now', 'localtime'), 'Overdue by', 23)
+
+ON CONFLICT(UnitID) WHERE Date_Completed IS NULL DO UPDATE
+SET Overdue_by = 121,
+Note = 'Days over due:';
