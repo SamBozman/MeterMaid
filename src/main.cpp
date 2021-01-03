@@ -38,5 +38,7 @@ void loop() {
     goToSleep();
 
   if (digitalRead(AP_REQUEST) == LOW)
-    openAP();
+    openAP(); 
+    // TODO setup AP_REQUEST to ask for  Mosquitto ip address
+            
 }

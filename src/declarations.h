@@ -19,14 +19,17 @@
 #include <time.h>
 
 #include <ESP_WiFiManager.h> //https://github.com/khoih-prog/ESP_WiFiManager
-#include <WiFiClient.h>
+#include <WiFiClient.h> // TODO change WiFiClient to WiFiClientSecure (Must also use port 443)
+// Link to more information: https://www.youtube.com/watch?v=Wm1xKj4bKsY
 #include <esp_wifi.h>
 
 using namespace std;
 WiFiClient mqttWiFiClient;
 PubSubClient mqttClient;
 // WiFiManager wifiManager;
-const char *mqtt_server = "192.168.1.11";
+const char *mqtt_server = "192.168.1.127";
+// TODO give mqtt server a name??
+
 String Router_SSID;
 String Router_Pass;
 

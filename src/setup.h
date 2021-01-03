@@ -34,9 +34,11 @@ void setup() {
     Serial.println(F("UnitID does = 0"));
     strcpy(UnitID, "N/A");
     saveConfig();
-
+  }
+    
+    
     runTime = 0;
     startTime = millis();        // Used by goToSleep()
     startMQTT_Millis = millis(); // Used by MQTT routines
-  }
+  
 }
