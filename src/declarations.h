@@ -31,7 +31,7 @@ const char *mqtt_server = "192.168.1.127";
 // TODO give mqtt server a name??
 
 String Router_SSID;
-String Router_Pass;
+String Router_Pass; // TODO Setup WiFi password hash (1)
 
 #define apChipID ((uint32_t)ESP.getEfuseMac())
 
@@ -56,7 +56,7 @@ unsigned long stopTime = 0;
 unsigned long runTime = 0;
 
 const long MQTT_Interval =
-    60000; // 1 min for testing. Should be at leats 15 min
+    60000; // 1 min for testing. Should be at least 15 min for production
 unsigned long startMQTT_Millis;
 unsigned long currentMQTT_Millis;
 
@@ -80,9 +80,9 @@ void dataInCallback(char *topic, byte *payload, unsigned int length);
 char const *getSubscription(const char *in);
 void goToSleep();
 void addToHM();
-void strToUnix(char *ptr);
+//void strToUnix(char *ptr);
 char *strptime(const char *__restrict, const char *__restrict,
                struct tm *__restrict);
-// void heartBeatPrint(void);
+//void heartBeatPrint(void);
 void check_status();
 void configWiFi();

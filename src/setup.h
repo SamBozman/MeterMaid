@@ -36,7 +36,7 @@ void setup() {
     saveConfig();
   }
     
-    
+   // testing  
     runTime = 0;
     startTime = millis();        // Used by goToSleep()
     startMQTT_Millis = millis(); // Used by MQTT routines

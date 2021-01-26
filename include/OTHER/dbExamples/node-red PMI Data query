@@ -1,5 +1,0 @@
-SELECT ESPModules. ESPModule_ID, Equipment. UnitID, Equipment. PMI_Class, 
-PMI_Class.PMI_Hrs, PMI_Class.PMI_Months FROM ESPModules 
-INNER JOIN Equipment ON ESPModules.UnitID = Equipment.UnitID 
-INNER JOIN PMI_Class ON Equipment.PMI_Class = PMI_Class.PMI_Class 
-WHERE ESPModules.ESPModule_ID = "E-F9BF713C"

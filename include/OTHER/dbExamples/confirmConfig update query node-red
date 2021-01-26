@@ -1,2 +1,0 @@
--- confirmConfig update query node-red
-UPDATE Equipment SET Preset_Hrs = 0, Note = "(Confirmed)" WHERE UnitID = "BT-109F";  --(?)

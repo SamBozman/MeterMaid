@@ -1,0 +1,3 @@
+// Code to retrieve ESP32 Chip-ID
+char ssid[23];
+snprintf(ssid, 23, "MCUDEVICE-%04X%08X", chip, (uint32_t)chipid);
