@@ -288,10 +288,7 @@ void configWiFi() {
 
   ESP_wifiManager.setMinimumSignalQuality(8);
   // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
-  ESP_wifiManager.setSTAStaticIPConfig(
-      IPAddress(192, 168, 2, 114), IPAddress(192, 168, 2, 1),
-      IPAddress(255, 255, 255, 0), IPAddress(192, 168, 2, 1),
-      IPAddress(8, 8, 8, 8));
+
 
   Router_SSID = ESP_wifiManager.WiFi_SSID();
   Router_Pass = ESP_wifiManager.WiFi_Pass();
