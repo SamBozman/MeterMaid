@@ -32,15 +32,11 @@ const char *mqtt_server = "192.168.1.127";
 
 String Router_SSID;
 String Router_Pass; // TODO Setup WiFi password hash (1)
-
-#define apChipID ((uint32_t)ESP.getEfuseMac())
-
-// SSID and PW for Config Portal
-String apWiFiD = "MM_" + String(apChipID, HEX);
+String MacAddress = WiFi.macAddress();
+char ClientID[21]; //Used to hold ClientID 
+char ClientID_t[21]; //used to get date/time from server
 const char *apPwd = "mmesp32";
 
-char ClientID[11];
-char ClientID_t[13];
 
 char UnitID[8] = "0";
 char HourMeter[6] = "0";

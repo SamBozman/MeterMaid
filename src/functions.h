@@ -202,7 +202,9 @@ bool mqttConnect() {
   if (mqttClient.connect(ClientID)) {
     Serial.println(F("mqttClient connected"));
     mqttClient.subscribe(ClientID);
+    Serial.println(F("Subscribed to ClientID"));
     mqttClient.subscribe(ClientID_t);
+    Serial.println(F("Subscribed to ClientID_t"));
     return true;
     // mqttClient.publish("getTime", ClientID_t);
     // mqttClient.publish("insertESP", ClientID);
@@ -294,7 +296,7 @@ void configWiFi() {
   Router_SSID = ESP_wifiManager.WiFi_SSID();
   Router_Pass = ESP_wifiManager.WiFi_Pass();
   Serial.println("Stored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
-  apWiFiD.toUpperCase();
+ 
 
   if (Router_SSID == "") {
     openAP();
@@ -367,7 +369,7 @@ void openAP() {
 
   // it starts an access point
   // and goes into a blocking loop awaiting configuration
-  if (!ESP_wifiManager.startConfigPortal((const char *)apWiFiD.c_str(),
+  if (!ESP_wifiManager.startConfigPortal((const char *)ClientID,
                                          apPwd)) {
     Serial.println("Not connected to WiFi but continuing anyway.");
   } else {
@@ -377,11 +379,4 @@ void openAP() {
 
   digitalWrite(AP_LED,
                LOW); // Turn led off as we are not in configuration mode.
-}
-//*********************************************************
-void createChipID() {
-  uint64_t chipid;
-  chipid = ESP.getEfuseMac();
-  snprintf(ClientID, 11, "E-%X", (uint32_t)chipid);     // ClientID
-  snprintf(ClientID_t, 13, "E-%X/t", (uint32_t)chipid); // ClientID_t
 }

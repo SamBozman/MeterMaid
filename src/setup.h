@@ -9,7 +9,8 @@ void setup() {
   pinMode(RUN_SENSOR, INPUT_PULLUP);
 
   delay(1000);
-  createChipID();
+  strcpy(ClientID,("MM-" + MacAddress).c_str());
+  strcpy(ClientID_t,("MT-" + MacAddress).c_str()); 
   Serial.print("ClientID = ");
   Serial.println(ClientID);
   configWiFi();
@@ -18,7 +19,7 @@ void setup() {
   mqttClient.setServer(mqtt_server, 1883);
   mqttClient.setCallback(dataInCallback);
 
-  Serial.println(WiFi.macAddress());
+  Serial.println(ClientID);
   esp_sleep_enable_ext0_wakeup(GPIO_NUM_13, 0);
 
   ++bootCount;
