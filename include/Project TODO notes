@@ -1,0 +1,5 @@
+1: WiFi Hash. Need to concider doing a WiFi hash so that a tech or mechanic
+installing an ESP module does not actually know the password he is entering when 
+configuring the module with the AP_REQUEST. 
+
+2: 
