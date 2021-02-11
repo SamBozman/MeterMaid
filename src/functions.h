@@ -202,9 +202,6 @@ bool mqttConnect() {
     mqttClient.subscribe(ClientID_t);
     Serial.println(F("Subscribed to ClientID_t"));
     return true;
-    // mqttClient.publish("getTime", ClientID_t);
-    // mqttClient.publish("insertESP", ClientID);
-    // mqttClient.publish("getConfig", ClientID);
 
   } else {
     Serial.println(F("MqttConnect Failed!"));
@@ -213,7 +210,7 @@ bool mqttConnect() {
     Serial.print("MqttClient State = :");
     Serial.println(mqttClient.state());
     return false;
-    // Serial.println(F(" try again in 5 seconds"));
+    
   }
 }
 //*********************************************************
@@ -299,18 +296,6 @@ void configWiFi() {
     openAP();
   }
 
-  // if (Router_SSID == "") {
-  //   Serial.println("Open AP");
-  //   digitalWrite(AP_LED, HIGH);
-
-  //   if (!ESP_wifiManager.startConfigPortal((const char *)apWiFID.c_str(),
-  //                                          apPwd))
-  //     Serial.println("Not connected to WiFi but continuing anyway.");
-  //   else
-  //     Serial.println("WiFi connected...yeey :)");
-  // }
-  // digitalWrite(AP_LED, LOW);
-
 #define WIFI_CONNECT_TIMEOUT 30000L
 #define WHILE_LOOP_DELAY 200L
 #define WHILE_LOOP_STEPS (WIFI_CONNECT_TIMEOUT / (3 * WHILE_LOOP_DELAY))
@@ -344,36 +329,30 @@ void configWiFi() {
 //*********************************************************
 void openAP() {
   Serial.println("\nConfiguration portal requested.");
-  digitalWrite(AP_LED, HIGH); // turn the LED on by making the voltage LOW
-                              // to tell us we are in configuration mode.
+  digitalWrite(AP_LED, HIGH); // blue led on for configuration mode
 
-  // Local intialization. Once its business is done, there is no need to keep
-  // it around
-  ESP_WiFiManager ESP_wifiManager;
+  ESP_WiFiManager ESP_wifiManager;// Local intialization.
 
   // Check if there is stored WiFi router/password credentials.
   // If not found, device will remain in configuration mode until switched off
   // via webserver.
   Serial.print("Opening configuration portal. ");
-  Router_SSID = ESP_wifiManager.WiFi_SSID();
+  Router_SSID = ESP_wifiManager.WiFi_SSID();//TODO always keep timeout??
   if (Router_SSID != "") {
     ESP_wifiManager.setConfigPortalTimeout(
-        60); // If no access point name has been previously entered disable
-             // timeout.
+        60);
     Serial.println("Got stored Credentials. Timeout 60s");
   } else
     Serial.println("No stored Credentials. No timeout");
 
-  // it starts an access point
-  // and goes into a blocking loop awaiting configuration
-  if (!ESP_wifiManager.startConfigPortal((const char *)ClientID,
-                                         apPwd)) {
+  // blocking loop awaiting configuration
+  if (!ESP_wifiManager.startConfigPortal((const char *)ClientID,apPwd))
+   {
     Serial.println("Not connected to WiFi but continuing anyway.");
   } else {
     // if you get here you have connected to the WiFi
     Serial.println("connected...yeey :)");
   }
 
-  digitalWrite(AP_LED,
-               LOW); // Turn led off as we are not in configuration mode.
+  digitalWrite(AP_LED,LOW); // Configuration LED (blue) off
 }
