@@ -82,49 +82,45 @@ void updateConfig(byte *payload, unsigned int length) {
   StaticJsonDocument<256> doc;
   DeserializationError error = deserializeJson(doc, payload);
   if (error) {
-    Serial.print(F("deserializeJson() failed: "));
+    Serial.print(F("getConfig download failed!"));
     Serial.println(error.c_str());
     return;
   }
-  Serial.println(F("deserializeJson() worked!! "));
+  Serial.println(F("Retrieved getConfig!"));
   JsonObject arr0 = doc[0];
-  serializeJsonPretty(doc, Serial);
+  //serializeJsonPretty(doc, Serial);
   Serial.println();
+  
   // Extract the downloaded values
   const char *UID = arr0["UnitID"];
   int P_Mths = arr0["PMI_Months"];
   int P_Hrs = arr0["PMI_Hrs"];
   int U_Hrs = arr0["Preset_Hrs"];
   const char *P_UH = arr0["Last_PMI"];
+   
+  boolean cmp_flag = false; //set control flag 
+  //Compare downloaded values to stored values
+  if (!(U_Hrs <= -1)) cmp_flag = true;
+  if (!strcmp(UID, UnitID) == 0) cmp_flag = true;
+  if (!(P_Mths == atoi(PMI_Months))) cmp_flag = true;
+  if (!(P_Hrs == atoi(PMI_Hrs))) cmp_flag = true;
+  if (!strcmp(P_UH, Last_PMI) == 0) cmp_flag = true;
 
-  boolean cmp_flag = false;
-  if (!(U_Hrs <= -1)) {
-    Serial.print(F("Preset_Hrs was "));
-    Serial.println(U_Hrs);
-    itoa(U_Hrs, HourMeter, 10);
-    Serial.println("Preset Hrs not = -1");
-    cmp_flag = true;
-  }
-  if (!strcmp(UID, UnitID) == 0)
-    cmp_flag = true;
-  if (!(P_Mths == atoi(PMI_Months)))
-    cmp_flag = true;
-  if (!(P_Hrs == atoi(PMI_Hrs)))
-    cmp_flag = true;
-  if (!strcmp(P_UH, Last_PMI) == 0)
-    cmp_flag = true;
 
-  if (cmp_flag) {
+  if (cmp_flag) { //If anything has changed then...
+    if (!(U_Hrs <= -1)) {//only change HourMeter if download is anthing but -1
+      itoa(U_Hrs, HourMeter, 10);// int to array of base type
+    }   
     strcpy(UnitID, UID);
-    // char *  itoa ( int value, char * str, int base );
     itoa(P_Mths, PMI_Months, 10);
     itoa(P_Hrs, PMI_Hrs, 10);
     strcpy(Last_PMI, P_UH);
-    Serial.println(F("Database config was changed!"));
-    mqttClient.publish("confirmConfig", UnitID);
-    saveConfig();
+    Serial.println(F("Config Updated and confirmConfig puplished!"));
+    mqttClient.publish("confirmConfig", UnitID); //Confirm Update back to DB
+    saveConfig();// Save changes to flash
   } else {
-    Serial.println(F("Database config was unchanged!"));
+    Serial.println(F("Config was not changed!"));
+  
   }
   checkPmiDue();
   Serial.println();
@@ -211,9 +207,10 @@ bool mqttConnect() {
     // mqttClient.publish("getConfig", ClientID);
 
   } else {
+    Serial.println(F("MqttConnect Failed!"));
     Serial.print(F("RC error = :"));
     Serial.println(F("failed, rc="));
-    Serial.print("State = :");
+    Serial.print("MqttClient State = :");
     Serial.println(mqttClient.state());
     return false;
     // Serial.println(F(" try again in 5 seconds"));
