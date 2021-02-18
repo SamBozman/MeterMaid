@@ -19,7 +19,7 @@
 #include <time.h>
 
 #include <ESP_WiFiManager.h> //https://github.com/khoih-prog/ESP_WiFiManager
-#include <WiFiClient.h> // TODO change WiFiClient to WiFiClientSecure (Must also use port 443)
+#include <WiFiClient.h>      // TODO change WiFiClient to WiFiClientSecure (Must also use port 443)
 // Link to more information: https://www.youtube.com/watch?v=Wm1xKj4bKsY
 #include <esp_wifi.h>
 
@@ -33,20 +33,26 @@ const char *mqtt_server = "192.168.1.127";
 String Router_SSID;
 String Router_Pass; // TODO Setup WiFi password hash (1)
 String MacAddress = WiFi.macAddress();
-char ClientID[21]; //Used to hold ClientID 
-char ClientID_t[21]; //used to get date/time from server
+char ClientID[21];             //Used to hold ClientID
+char ClientID_t[21];           //used to get date/time from server
 const char *apPwd = "mmesp32"; //Pointer char's should never be changed during run time
 
 // char example[]; //This char example could change during run time
-//unlike the ones below that are set at runetime. 
+//unlike the ones below that are set at runetime.
 char UnitID[8] = "0";
-char HourMeter[6] = "0";
-char PMI_Months[3] = "12";
-char PMI_Hrs[4] = "250";
+
+//char HourMeter[6] = "0";
+int HourMeter = 0;
+
+//char PMI_Months[3] = "12";
+int PMI_Months = 0;
+
+//char PMI_Hrs[4] = "250";
+int PMI_Hrs = 0;
+
 char Last_PMI[11] = "N/A";
 char Last_MQTT[11] = "N/A";
-float myfloat = 455.7;
-float myfloat2; 
+
 //unsigned long variables will hold 0 to 4294967295 (49 days)
 unsigned long int CurrentTime = 0;
 unsigned long startTime = 0;
@@ -57,12 +63,12 @@ const long MQTT_Interval = 60000; // !15 min for production?
 unsigned long startMQTT_Millis;
 unsigned long currentMQTT_Millis;
 
-#define AP_REQUEST 0 // Built in boot switch
+#define AP_REQUEST 0  // Built in boot switch
 #define RUN_SENSOR 13 // Gnd on this pin initiates run condition
-#define AP_LED 2 //Indicates Access Point request
+#define AP_LED 2      //Indicates Access Point request
 
-RTC_DATA_ATTR int RTC_bootCount = 0;//These variables will keep their values
-RTC_DATA_ATTR unsigned long RTC_totTime = 0;// during deep sleep
+RTC_DATA_ATTR int RTC_bootCount = 0;         //These variables will keep their values
+RTC_DATA_ATTR unsigned long RTC_totTime = 0; // during deep sleep
 
 boolean runSensorState = false;
 

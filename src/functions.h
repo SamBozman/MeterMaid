@@ -33,11 +33,11 @@ void checkPmiDue()
 {
 
   const long int secondsInaDay = 86400; // Number of seconds in a day
-  const long int minDate = 1264695154;
-  const int PMI_days = 30 * atoi(PMI_Months);
+  //const long int minDate = 1264695154;
+  const int PMI_days = 30 * PMI_Months;
   unsigned long int unixLastPmi;
-  int int_HourMeter = atoi(HourMeter);
-  int int_PMI_Hrs = atoi(PMI_Hrs);
+  //int int_HourMeter = atoi(HourMeter);
+  //int int_PMI_Hrs = atoi(PMI_Hrs);
 
   // check for PMI due by months
   char *ptr_strTime = Last_PMI;
@@ -68,10 +68,11 @@ void checkPmiDue()
 
   // check for PMI due by Hourmeter
   cout << "HourMeter = " << HourMeter << endl;
-  cout << "int_PMI_Hrs = " << int_PMI_Hrs << endl;
-  if (int_HourMeter >= int_PMI_Hrs)
+  cout << "PMI_Hrs = " << PMI_Hrs << endl;
+
+  if (HourMeter >= PMI_Hrs)
   {
-    Over = int_HourMeter - int_PMI_Hrs;
+    Over = HourMeter - PMI_Hrs;
     cout << "PMI DUE by Hourmeter" << endl;
     StaticJsonDocument<256> jsonObj;
     jsonObj["UnitID"] = UnitID;
@@ -114,9 +115,9 @@ void updateConfig(byte *payload, unsigned int length)
     cmp_flag = true;
   if (!strcmp(UID, UnitID) == 0)
     cmp_flag = true;
-  if (!(P_Mths == atoi(PMI_Months)))
+  if (!(P_Mths == PMI_Months))
     cmp_flag = true;
-  if (!(P_Hrs == atoi(PMI_Hrs)))
+  if (!(P_Hrs == PMI_Hrs))
     cmp_flag = true;
   if (!strcmp(P_UH, Last_PMI) == 0)
     cmp_flag = true;
@@ -124,12 +125,16 @@ void updateConfig(byte *payload, unsigned int length)
   if (cmp_flag)
   { //If anything has changed then...
     if (!(U_Hrs <= -1))
-    {                             //only change HourMeter if download is anthing but -1
-      itoa(U_Hrs, HourMeter, 10); // int to array of base type
+    { //only change HourMeter if download is anthing but -1
+      //itoa(U_Hrs, HourMeter, 10);// int to array of base type
+      HourMeter = U_Hrs;
     }
     strcpy(UnitID, UID);
-    itoa(P_Mths, PMI_Months, 10);
-    itoa(P_Hrs, PMI_Hrs, 10);
+    //itoa(P_Mths, PMI_Months, 10);
+    PMI_Months = P_Mths;
+    //itoa(P_Hrs, PMI_Hrs, 10);
+    PMI_Hrs = P_Hrs;
+
     strcpy(Last_PMI, P_UH);
     Serial.println(F("Config Updated and confirmConfig puplished!"));
     mqttClient.publish("confirmConfig", UnitID); //Confirm Update back to DB
@@ -199,15 +204,12 @@ void readConfig()
         Serial.println();
 
         strcpy(UnitID, json["UnitID"]);
-        strcpy(HourMeter, json["HourMeter"]);
-        strcpy(PMI_Months, json["PMI_Months"]);
-        strcpy(PMI_Hrs, json["PMI_Hrs"]);
+        HourMeter = json["HourMeter"];
+        PMI_Months = json["PMI_Months"];
+        PMI_Hrs = json["PMI_Hrs"];
         strcpy(Last_PMI, json["Last_PMI"]);
         strcpy(Last_MQTT, json["Last_MQTT"]);
-        myfloat2 = json["My_Float"];
         configFile.close();
-        Serial.print("My Float 2 = ");
-        Serial.println(myfloat2);
         json.clear();
       }
       else
@@ -276,7 +278,6 @@ void saveConfig()
       json["PMI_Hrs"] = PMI_Hrs;
       json["Last_PMI"] = Last_PMI;
       json["Last_MQTT"] = Last_MQTT;
-      json["My_Float"] = myfloat;
 
       serializeJson(json, configFile);
       serializeJsonPretty(json, Serial);
@@ -296,13 +297,10 @@ void saveConfig()
 //*********************************************************
 void addToHM()
 {
-  int HM;                           //local HourMeter variable
-  HM = atoi(HourMeter);             //Convert Hourmeter (char array) to int and puts it in HM
-  HM += RTC_totTime / 3600;         // Adds whole number of division to HM. Remainer ignored
-  RTC_totTime = RTC_totTime % 3600; // Yeilds the remainder of divishion. Whole number ignored
-
-  // char *  itoa ( int value, char * str, int base );
-  itoa(HM, HourMeter, 10); //Convert HM (int) to char array and copy into Hourmeter
+  // Adds whole number of division to HM. Remainer ignored
+  HourMeter += RTC_totTime / 3600;
+  // Yeilds the remainder of divishion. Whole number ignored
+  RTC_totTime = RTC_totTime % 3600;
   saveConfig();
 }
 //*********************************************************
