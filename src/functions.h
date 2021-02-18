@@ -2,11 +2,13 @@
 #include "declarations.h"
 
 //*******************************************************************************
-void check_status() {
+void check_status() //TODO Eventually get rid of this function
+{
   static ulong checkstatus_timeout = 0;
 #define HEARTBEAT_INTERVAL 10000L
   // Print hearbeat every HEARTBEAT_INTERVAL (10) seconds.
-  if ((millis() > checkstatus_timeout) || (checkstatus_timeout == 0)) {
+  if ((millis() > checkstatus_timeout) || (checkstatus_timeout == 0))
+  {
     static int num = 1;
 
     if (WiFi.status() == WL_CONNECTED)
@@ -14,17 +16,21 @@ void check_status() {
     else
       Serial.print("x"); // x means not connected to WiFi
 
-    if (num == 80) {
+    if (num == 80)
+    {
       Serial.println();
       num = 1;
-    } else if (num++ % 10 == 0) {
+    }
+    else if (num++ % 10 == 0)
+    {
       Serial.print(" ");
     }
     checkstatus_timeout = millis() + HEARTBEAT_INTERVAL;
   }
 }
 //*********************************************************
-void checkPmiDue() {
+void checkPmiDue()
+{
 
   const long int secondsInaDay = 86400; // Number of seconds in a day
   const long int minDate = 1264695154;
@@ -44,7 +50,8 @@ void checkPmiDue() {
   int Over = 0;
   int daysSinceLastPMI = (CurrentTime - unixLastPmi) / secondsInaDay;
   cout << "Days since last pmi = " << daysSinceLastPMI << endl;
-  if (daysSinceLastPMI >= PMI_days) {
+  if (daysSinceLastPMI >= PMI_days)
+  {
     Over = daysSinceLastPMI - PMI_days;
     cout << "PMI DUE by Months" << endl;
     StaticJsonDocument<256> jsonObj;
@@ -62,7 +69,8 @@ void checkPmiDue() {
   // check for PMI due by Hourmeter
   cout << "HourMeter = " << HourMeter << endl;
   cout << "int_PMI_Hrs = " << int_PMI_Hrs << endl;
-  if (int_HourMeter >= int_PMI_Hrs) {
+  if (int_HourMeter >= int_PMI_Hrs)
+  {
     Over = int_HourMeter - int_PMI_Hrs;
     cout << "PMI DUE by Hourmeter" << endl;
     StaticJsonDocument<256> jsonObj;
@@ -78,89 +86,107 @@ void checkPmiDue() {
   }
 }
 //*********************************************************
-void updateConfig(byte *payload, unsigned int length) {
+void updateConfig(byte *payload, unsigned int length)
+{
   StaticJsonDocument<256> doc;
   DeserializationError error = deserializeJson(doc, payload);
-  if (error) {
+  if (error)
+  {
     Serial.print(F("getConfig download failed!"));
     Serial.println(error.c_str());
     return;
   }
-  Serial.println(F("Retrieved getConfig!"));
+  Serial.println(F("Retrieved Unit config file!"));
   JsonObject arr0 = doc[0];
   //serializeJsonPretty(doc, Serial);
   Serial.println();
-  
+
   // Extract the downloaded values
   const char *UID = arr0["UnitID"];
   int P_Mths = arr0["PMI_Months"];
   int P_Hrs = arr0["PMI_Hrs"];
   int U_Hrs = arr0["Preset_Hrs"];
   const char *P_UH = arr0["Last_PMI"];
-   
-  boolean cmp_flag = false; //set control flag 
+
+  boolean cmp_flag = false; //set control flag
   //Compare downloaded values to stored values
-  if (!(U_Hrs <= -1)) cmp_flag = true;
-  if (!strcmp(UID, UnitID) == 0) cmp_flag = true;
-  if (!(P_Mths == atoi(PMI_Months))) cmp_flag = true;
-  if (!(P_Hrs == atoi(PMI_Hrs))) cmp_flag = true;
-  if (!strcmp(P_UH, Last_PMI) == 0) cmp_flag = true;
+  if (!(U_Hrs <= -1))
+    cmp_flag = true;
+  if (!strcmp(UID, UnitID) == 0)
+    cmp_flag = true;
+  if (!(P_Mths == atoi(PMI_Months)))
+    cmp_flag = true;
+  if (!(P_Hrs == atoi(PMI_Hrs)))
+    cmp_flag = true;
+  if (!strcmp(P_UH, Last_PMI) == 0)
+    cmp_flag = true;
 
-
-  if (cmp_flag) { //If anything has changed then...
-    if (!(U_Hrs <= -1)) {//only change HourMeter if download is anthing but -1
-      itoa(U_Hrs, HourMeter, 10);// int to array of base type
-    }   
+  if (cmp_flag)
+  { //If anything has changed then...
+    if (!(U_Hrs <= -1))
+    {                             //only change HourMeter if download is anthing but -1
+      itoa(U_Hrs, HourMeter, 10); // int to array of base type
+    }
     strcpy(UnitID, UID);
     itoa(P_Mths, PMI_Months, 10);
     itoa(P_Hrs, PMI_Hrs, 10);
     strcpy(Last_PMI, P_UH);
     Serial.println(F("Config Updated and confirmConfig puplished!"));
     mqttClient.publish("confirmConfig", UnitID); //Confirm Update back to DB
-    saveConfig();// Save changes to flash
-  } else {
+    saveConfig();                                // Save changes to flash
+  }
+  else
+  {
     Serial.println(F("Config was not changed!"));
-  
   }
   checkPmiDue();
   Serial.println();
 }
 //*********************************************************
-void dataInCallback(char *topic, byte *payload, unsigned int length) {
+void dataInCallback(char *topic, byte *payload, unsigned int length)
+{
   // getConfig
-  if (strcmp(topic, ClientID) == 0) {
-    Serial.println("Topic = getConfig");
+  if (strcmp(topic, ClientID) == 0)
     updateConfig(payload, length);
-  } else {
-    // get timestamp
-    if (strcmp(topic, ClientID_t) == 0) {
-      cout << "Topic = getTime " << endl;
-      if (length == (13)) {
-        char time[length - 2];
-        for (int i = 0; i < length - 3; i++) {
-          time[i] = (char)payload[i];
-        }
-        time[length - 3] = '\0';
-        CurrentTime = strtol(time, NULL, 10);
-        cout << "Current UnixTimestamp is: " << CurrentTime << endl;
-      }
+  else // get timestamp
+      if (strcmp(topic, ClientID_t) == 0)
+    getTime(payload, length);
+}
+//*********************************************************
+void getTime(byte *payload, unsigned int length)
+{
+  cout << "Topic = getTime " << endl;
+  if (length == (13))
+  {
+    char time[length - 2];
+    for (int i = 0; i < length - 3; i++)
+    {
+      time[i] = (char)payload[i];
     }
+    time[length - 3] = '\0';
+    CurrentTime = strtol(time, NULL, 10);
+    cout << "Current UnixTimestamp is: " << CurrentTime << endl;
   }
 }
 //*********************************************************
-void readConfig() {
-  if (SPIFFS.begin(true)) {
+void readConfig()
+{
+  if (SPIFFS.begin(true))
+  {
     Serial.println("Opened SPIFFS file system");
-    if (SPIFFS.exists("/config.json")) {
+    if (SPIFFS.exists("/config.json"))
+    {
       Serial.println(F("reading config file"));
       File configFile = SPIFFS.open("/config.json", "r");
-      if (configFile) {
+      if (configFile)
+      {
         Serial.println(F("opened config file"));
 
         StaticJsonDocument<256> json;
 
         DeserializationError error = deserializeJson(json, configFile);
-        if (error) {
+        if (error)
+        {
           Serial.print(F("deserializeJson() failed: "));
           Serial.println(error.c_str());
           configFile.close();
@@ -178,55 +204,69 @@ void readConfig() {
         strcpy(PMI_Hrs, json["PMI_Hrs"]);
         strcpy(Last_PMI, json["Last_PMI"]);
         strcpy(Last_MQTT, json["Last_MQTT"]);
-
+        myfloat2 = json["My_Float"];
         configFile.close();
+        Serial.print("My Float 2 = ");
+        Serial.println(myfloat2);
         json.clear();
-      } else {
+      }
+      else
+      {
         Serial.println(F("Could not read config file"));
       }
-    } else {
+    }
+    else
+    {
       Serial.println(F("Config file does not exist"));
     }
-  } else {
+  }
+  else
+  {
     Serial.println(F("failed to mount FS"));
   }
 
   SPIFFS.end();
 }
 //*********************************************************
-bool mqttConnect() {
-  if (mqttClient.connect(ClientID)) {
+bool mqttConnect()
+{
+  if (mqttClient.connect(ClientID))
+  {
     Serial.println(F("mqttClient connected"));
     mqttClient.subscribe(ClientID);
     Serial.println(F("Subscribed to ClientID"));
     mqttClient.subscribe(ClientID_t);
     Serial.println(F("Subscribed to ClientID_t"));
     return true;
-
-  } else {
+  }
+  else
+  {
     Serial.println(F("MqttConnect Failed!"));
     Serial.print(F("RC error = :"));
     Serial.println(F("failed, rc="));
     Serial.print("MqttClient State = :");
     Serial.println(mqttClient.state());
     return false;
-    
   }
 }
 //*********************************************************
-void saveConfig() {
+void saveConfig()
+{
   Serial.println(F("saving config"));
 
-  if (SPIFFS.begin()) {
+  if (SPIFFS.begin())
+  {
     Serial.println(F("mounted file system"));
-    if (SPIFFS.exists("/config.json")) {
+    if (SPIFFS.exists("/config.json"))
+    {
       Serial.println("removing config.json file");
       SPIFFS.remove("/config.json");
     }
 
     File configFile = SPIFFS.open("/config.json", "w");
 
-    if (configFile) {
+    if (configFile)
+    {
       Serial.println("writing config file");
       StaticJsonDocument<256> json;
 
@@ -236,6 +276,7 @@ void saveConfig() {
       json["PMI_Hrs"] = PMI_Hrs;
       json["Last_PMI"] = Last_PMI;
       json["Last_MQTT"] = Last_MQTT;
+      json["My_Float"] = myfloat;
 
       serializeJson(json, configFile);
       serializeJsonPretty(json, Serial);
@@ -246,30 +287,34 @@ void saveConfig() {
       Serial.println(F("Config was saved to SPIFFS!"));
       SPIFFS.end();
     }
-  } else {
+  }
+  else
+  {
     Serial.println(F("failed to mount FS"));
   }
 }
 //*********************************************************
-void addToHM() {
-  int HM;
-  int a = totTime / 3600;
-  totTime = totTime % 3600;
-  HM = atoi(HourMeter);
-  HM += a;
+void addToHM()
+{
+  int HM;                           //local HourMeter variable
+  HM = atoi(HourMeter);             //Convert Hourmeter (char array) to int and puts it in HM
+  HM += RTC_totTime / 3600;         // Adds whole number of division to HM. Remainer ignored
+  RTC_totTime = RTC_totTime % 3600; // Yeilds the remainder of divishion. Whole number ignored
+
   // char *  itoa ( int value, char * str, int base );
-  itoa(HM, HourMeter, 10);
+  itoa(HM, HourMeter, 10); //Convert HM (int) to char array and copy into Hourmeter
   saveConfig();
 }
 //*********************************************************
-void goToSleep() {
+void goToSleep()
+{
   // If you saved every hour, 24 hours a day, every day you would take 11 years
   // before you reached the 100,000 save limit of the SPIFFS system
   stopTime = millis();
-  runTime += (stopTime - startTime) / 1000;
-  totTime += runTime;
+  runTime += (stopTime - startTime) / 1000; //# of seconds unit was running
+  RTC_totTime += runTime;
 
-  if (totTime >= 3600) // 1 hour
+  if (RTC_totTime >= 3600) // 1 hour
   {
     addToHM();
   }
@@ -279,20 +324,20 @@ void goToSleep() {
   esp_deep_sleep_start();
 }
 //*******************************************************************************
-void configWiFi() {
+void configWiFi()
+{
   unsigned long startedAt = millis();
   ESP_WiFiManager ESP_wifiManager("ConfigOnSwitch");
 
   ESP_wifiManager.setMinimumSignalQuality(8);
   // Set static IP, Gateway, Subnetmask, DNS1 and DNS2. New in v1.0.5
 
-
   Router_SSID = ESP_wifiManager.WiFi_SSID();
   Router_Pass = ESP_wifiManager.WiFi_Pass();
   Serial.println("Stored: SSID = " + Router_SSID + ", Pass = " + Router_Pass);
- 
 
-  if (Router_SSID == "") {
+  if (Router_SSID == "")
+  {
     openAP();
   }
 
@@ -303,7 +348,8 @@ void configWiFi() {
   startedAt = millis();
 
   while ((WiFi.status() != WL_CONNECTED) &&
-         (millis() - startedAt < WIFI_CONNECT_TIMEOUT)) {
+         (millis() - startedAt < WIFI_CONNECT_TIMEOUT))
+  {
     WiFi.mode(WIFI_STA);
     WiFi.persistent(true);
     // We start by connecting to a WiFi network
@@ -315,44 +361,52 @@ void configWiFi() {
 
     int i = 0;
     while ((!WiFi.status() || WiFi.status() >= WL_DISCONNECTED) &&
-           i++ < WHILE_LOOP_STEPS) {
+           i++ < WHILE_LOOP_STEPS)
+    {
       delay(WHILE_LOOP_DELAY);
     }
   }
 
-  if (WiFi.status() == WL_CONNECTED) {
+  if (WiFi.status() == WL_CONNECTED)
+  {
     Serial.print("connected. Local IP: ");
     Serial.println(WiFi.localIP());
-  } else
+  }
+  else
     Serial.println(ESP_wifiManager.getStatus(WiFi.status()));
 }
 //*********************************************************
-void openAP() {
+void openAP()
+{
   Serial.println("\nConfiguration portal requested.");
   digitalWrite(AP_LED, HIGH); // blue led on for configuration mode
 
-  ESP_WiFiManager ESP_wifiManager;// Local intialization.
+  ESP_WiFiManager ESP_wifiManager; // Local intialization.
 
   // Check if there is stored WiFi router/password credentials.
   // If not found, device will remain in configuration mode until switched off
   // via webserver.
   Serial.print("Opening configuration portal. ");
-  Router_SSID = ESP_wifiManager.WiFi_SSID();//TODO always keep timeout??
-  if (Router_SSID != "") {
+  Router_SSID = ESP_wifiManager.WiFi_SSID(); //TODO always keep timeout??
+  if (Router_SSID != "")
+  {
     ESP_wifiManager.setConfigPortalTimeout(
         60);
     Serial.println("Got stored Credentials. Timeout 60s");
-  } else
+  }
+  else
     Serial.println("No stored Credentials. No timeout");
 
   // blocking loop awaiting configuration
-  if (!ESP_wifiManager.startConfigPortal((const char *)ClientID,apPwd))
-   {
+  if (!ESP_wifiManager.startConfigPortal((const char *)ClientID, apPwd))
+  {
     Serial.println("Not connected to WiFi but continuing anyway.");
-  } else {
+  }
+  else
+  {
     // if you get here you have connected to the WiFi
     Serial.println("connected...yeey :)");
   }
 
-  digitalWrite(AP_LED,LOW); // Configuration LED (blue) off
+  digitalWrite(AP_LED, LOW); // Configuration LED (blue) off
 }

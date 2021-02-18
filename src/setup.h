@@ -22,9 +22,9 @@ void setup() {
   Serial.println(ClientID);
   esp_sleep_enable_ext0_wakeup(GPIO_NUM_13, 0);
 
-  ++bootCount;
-  Serial.println("Boot number: " + String(bootCount));
-  Serial.println("Total accumulated time : " + String(totTime) + " seconds");
+  ++RTC_bootCount;
+  Serial.println("Boot number: " + String(RTC_bootCount));
+  Serial.println("Total accumulated time : " + String(RTC_totTime) + " seconds");
 
   Serial.println();
 
@@ -37,9 +37,7 @@ void setup() {
     saveConfig();
   }
     
-   // testing  
-    runTime = 0;
-    startTime = millis();        // Used by goToSleep()
+    startTime = millis();  //Set start timer in milliseconds (1000/sec)
     startMQTT_Millis = millis(); // Used by MQTT routines
   
 }
